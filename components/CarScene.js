@@ -66,6 +66,70 @@ export default function CarScene() {
     scene.add(fillLight);
     scene.add(new THREE.HemisphereLight(0xfff0dd, 0xcfc0ae, 0.4));
 
+    // ─── CONTACT SHADOW PLANE ──────────────────────────────────
+    const shadowCanvas = document.createElement('canvas');
+    shadowCanvas.width = 512; shadowCanvas.height = 512;
+    const sctx = shadowCanvas.getContext('2d');
+
+    // Layer 1: wide soft outer falloff
+    sctx.save();
+    sctx.translate(256, 256);
+    sctx.scale(1.6, 1.0);
+    const outerGrad = sctx.createRadialGradient(0, 0, 0, 0, 0, 200);
+    outerGrad.addColorStop(0, 'rgba(0,0,0,0.35)');
+    outerGrad.addColorStop(0.3, 'rgba(0,0,0,0.22)');
+    outerGrad.addColorStop(0.6, 'rgba(0,0,0,0.08)');
+    outerGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    sctx.fillStyle = outerGrad;
+    sctx.fillRect(-256, -256, 512, 512);
+    sctx.restore();
+
+    // Layer 2: tighter inner core (darker, car-shaped)
+    sctx.save();
+    sctx.translate(256, 256);
+    sctx.scale(1.3, 0.85);
+    const innerGrad = sctx.createRadialGradient(0, 0, 0, 0, 0, 140);
+    innerGrad.addColorStop(0, 'rgba(0,0,0,0.4)');
+    innerGrad.addColorStop(0.4, 'rgba(0,0,0,0.18)');
+    innerGrad.addColorStop(0.8, 'rgba(0,0,0,0.04)');
+    innerGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    sctx.fillStyle = innerGrad;
+    sctx.fillRect(-256, -256, 512, 512);
+    sctx.restore();
+
+    // Layer 3: dark center under car body
+    sctx.save();
+    sctx.translate(256, 256);
+    sctx.scale(0.9, 0.6);
+    const coreGrad = sctx.createRadialGradient(0, 0, 0, 0, 0, 100);
+    coreGrad.addColorStop(0, 'rgba(0,0,0,0.3)');
+    coreGrad.addColorStop(0.5, 'rgba(0,0,0,0.1)');
+    coreGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    sctx.fillStyle = coreGrad;
+    sctx.fillRect(-256, -256, 512, 512);
+    sctx.restore();
+
+    const shadowTex = new THREE.CanvasTexture(shadowCanvas);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      map: shadowTex, transparent: true, depthWrite: false,
+    });
+    const shadowPlane = new THREE.Mesh(new THREE.PlaneGeometry(5, 5), shadowMat);
+    shadowPlane.rotation.x = -Math.PI / 2;
+    shadowPlane.position.y = -1.15;
+    shadowPlane.renderOrder = -1;
+    scene.add(shadowPlane);
+
+    function updateShadow() {
+      if (!car) return;
+      // Offset toward key light direction (left) for realistic directional shadow
+      shadowPlane.position.x = car.position.x - 0.2;
+      shadowPlane.position.z = car.position.z + 0.1;
+      shadowPlane.position.y = car.position.y - 0.65;
+      // Shadow grows and softens as car rises
+      const heightFactor = 1 + Math.max(0, -car.position.y) * 0.15;
+      shadowPlane.scale.set(heightFactor, heightFactor, 1);
+    }
+
     // ─── CAR STATE ─────────────────────────────────────────────
     let car = null;
     let carLoaded = false;
@@ -212,8 +276,8 @@ export default function CarScene() {
               gsap.to(car.rotation, { x: 0, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' });
             }
           },
-          onEnter: () => { disableDrag(); currentSection = 'stats'; },
-          onLeaveBack: () => { currentSection = 'hero'; enableDrag(); statsProgress = 0; statsAligned = false; }
+          onEnter: () => { disableDrag(); currentSection = 'stats'; shadowMat.opacity = 0; },
+          onLeaveBack: () => { currentSection = 'hero'; enableDrag(); statsProgress = 0; statsAligned = false; shadowMat.opacity = 1; }
         })
       );
 
@@ -236,7 +300,7 @@ export default function CarScene() {
             }
           },
           onEnter:     () => { currentSection = 'how'; },
-          onLeaveBack: () => { currentSection = 'stats'; howProgress = 0; howAligned = false; statsAligned = false; if (car) gsap.to(car.rotation, { x: 0, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' }); }
+          onLeaveBack: () => { currentSection = 'stats'; howProgress = 0; howAligned = false; statsAligned = false; if (car) gsap.to(car.rotation, { x: 0, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' }); shadowMat.opacity = 0; }
         })
       );
 
@@ -257,6 +321,7 @@ export default function CarScene() {
             car.traverse((child) => {
               if (child.isMesh) child.material.opacity = opacity;
             });
+            shadowMat.opacity = 0;
           },
           onEnter:     () => { currentSection = 'footer'; },
           onLeaveBack: () => { currentSection = 'how'; howAligned = false; if (car) car.traverse((child) => { if (child.isMesh) child.material.opacity = 1; }); }
@@ -335,6 +400,7 @@ export default function CarScene() {
           car.rotation.y += autoVel.y;
         }
       }
+      updateShadow();
       renderer.render(scene, camera);
     }
     gsap.ticker.add(animate);
