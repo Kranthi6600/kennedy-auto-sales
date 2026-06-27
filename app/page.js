@@ -1,4 +1,4 @@
-import BasketballScene from '../components/BasketballScene';
+import CarScene from '../components/CarScene';
 
 export default function Home() {
   return (
@@ -31,7 +31,7 @@ export default function Home() {
 
       {/* HERO SECTION */}
       <section className="section hero-section" id="hero-section">
-        <BasketballScene />
+        <CarScene />
 
         {/* Product Hunt badge */}
         <div className="ph-badge-wrap" id="ph-badge">
@@ -168,7 +168,7 @@ export default function Home() {
       {/* SECTION 3 — HOW IT WORKS */}
       <section className="section how-section" id="how-section">
         <div className="how-bg-text">DRIVE</div>
-        <div className="how-ball-zone" id="how-ball-zone" />
+        <div className="how-car-zone" id="how-car-zone" />
         <div className="how-content">
           <span className="section-eyebrow">HOW IT WORKS</span>
           <h2 className="section-headline">THREE STEPS<br />TO YOUR CAR</h2>
@@ -217,7 +217,7 @@ export default function Home() {
 
       {/* FOOTER */}
       <footer className="site-footer" id="site-footer">
-        <div className="footer-bg-ball" />
+        <div className="footer-bg-car" />
         <div className="footer-inner">
           <div className="footer-top">
             <div className="footer-brand">

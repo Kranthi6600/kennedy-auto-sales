@@ -10,12 +10,12 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-const BALL_SCALE = 0.97;
+const CAR_SCALE = 0.97;
 const FOOTER_SCALE = 0.5;
 const SECTIONS = {
-  hero:   { x: 0.5,   y: -0.45, z: 0,    scale: BALL_SCALE   },
-  stats:  { x: 2.2,   y:  0.0,  z: 0,    scale: BALL_SCALE   },
-  how:    { x: -2.2,  y:  0.0,  z: 0,    scale: BALL_SCALE   },
+  hero:   { x: 0.5,   y: -0.45, z: 0,    scale: CAR_SCALE   },
+  stats:  { x: 2.2,   y: -0.3,  z: 0.55, scale: CAR_SCALE   },
+  how:    { x: -2.2,  y:  0.0,  z: 0,    scale: CAR_SCALE   },
   footer: { x: 2.5,   y: -1.3,  z: -2.0, scale: FOOTER_SCALE },
 };
 
@@ -23,7 +23,7 @@ function lerp(a, b, t) { return a + (b - a) * t; }
 function easeInOut(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
 function depthOffset(y) { return Math.min(0, y) * 0.3; }
 
-export default function BasketballScene() {
+export default function CarScene() {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -66,49 +66,60 @@ export default function BasketballScene() {
     scene.add(fillLight);
     scene.add(new THREE.HemisphereLight(0xfff0dd, 0xcfc0ae, 0.4));
 
-    // ─── BALL STATE ─────────────────────────────────────────────
-    let ball = null;
-    let ballLoaded = false;
+    // ─── CAR STATE ─────────────────────────────────────────────
+    let car = null;
+    let carLoaded = false;
     let baseScale = 1;
     let currentSection = "hero";
+    let statsProgress = 0;
+    let howProgress = 0;
+    let statsAligned = false;
+    let howAligned = false;
 
-    // ─── LOAD BALL ──────────────────────────────────────────────
+    // ─── LOAD CAR ──────────────────────────────────────────────
     const dracoLoader = new DRACOLoader();
     dracoLoader.setDecoderPath("https://www.gstatic.com/draco/versioned/decoders/1.5.6/");
     const loader = new GLTFLoader();
     loader.setDRACOLoader(dracoLoader);
 
-    function ballEntrance() {
-      if (!ball) return;
+    function carEntrance() {
+      if (!car) return;
       const targetS = baseScale * SECTIONS.hero.scale;
-      ball.scale.setScalar(targetS * 0.25);
+      car.scale.setScalar(targetS * 0.25);
 
-      gsap.to(ball.scale, {
+      gsap.to(car.scale, {
         x: targetS, y: targetS, z: targetS,
         duration: 1.3, ease: 'expo.out', delay: 0.5,
         onComplete: () => enableDrag()
       });
-      gsap.fromTo(ball.position,
+      gsap.fromTo(car.position,
         { y: SECTIONS.hero.y - 0.8 },
         { y: SECTIONS.hero.y, duration: 1.3, ease: 'expo.out', delay: 0.5 }
       );
     }
 
     loader.load('/models/2021_ford_bronco_2-door.glb', (gltf) => {
-      ball = gltf.scene;
+      car = gltf.scene;
 
-      const box = new THREE.Box3().setFromObject(ball);
+      car.traverse((child) => {
+        if (child.isMesh) {
+          child.material.transparent = true;
+          child.material.opacity = 1;
+        }
+      });
+
+      const box = new THREE.Box3().setFromObject(car);
       const center = box.getCenter(new THREE.Vector3());
-      ball.position.sub(center);
+      car.position.sub(center);
 
       const size = box.getSize(new THREE.Vector3());
       baseScale = 2.4 / Math.max(size.x, size.y, size.z);
-      ball.scale.setScalar(baseScale * SECTIONS.hero.scale);
-      ball.position.set(SECTIONS.hero.x, SECTIONS.hero.y, SECTIONS.hero.z);
+      car.scale.setScalar(baseScale * SECTIONS.hero.scale);
+      car.position.set(SECTIONS.hero.x, SECTIONS.hero.y, SECTIONS.hero.z);
 
-      scene.add(ball);
-      ballLoaded = true;
-      ballEntrance();
+      scene.add(car);
+      carLoaded = true;
+      carEntrance();
       ScrollTrigger.refresh();
     }, undefined, (err) => console.error('GLB Error:', err));
 
@@ -132,20 +143,20 @@ export default function BasketballScene() {
     }
 
     function onDragStart(e) {
-      if (!ballLoaded || currentSection !== "hero") return;
+      if (!carLoaded || currentSection !== "hero") return;
       isDragging = true;
       prevMouse = getPos(e);
       velocity = { x: 0, y: 0 };
       if (momentumRAF) cancelAnimationFrame(momentumRAF);
     }
     function onDragMove(e) {
-      if (!isDragging || !ball) return;
+      if (!isDragging || !car) return;
       if (e.cancelable) e.preventDefault();
       const pos = getPos(e);
       velocity.x = (pos.y - prevMouse.y) * 0.006;
       velocity.y = (pos.x - prevMouse.x) * 0.006;
-      ball.rotation.x += velocity.x;
-      ball.rotation.y += velocity.y;
+      car.rotation.x += velocity.x;
+      car.rotation.y += velocity.y;
       prevMouse = { ...pos };
     }
     function onDragEnd() {
@@ -154,11 +165,15 @@ export default function BasketballScene() {
       applyMomentum();
     }
     function applyMomentum() {
-      if (!ball) return;
+      if (!car) return;
+      if ((statsProgress > 0.85 && howProgress < 0.15) || (howProgress > 0.85)) {
+        velocity = { x: 0, y: 0 };
+        return;
+      }
       velocity.x *= DAMPING;
       velocity.y *= DAMPING;
-      ball.rotation.x += velocity.x;
-      ball.rotation.y += velocity.y;
+      car.rotation.x += velocity.x;
+      car.rotation.y += velocity.y;
       if (Math.abs(velocity.x) + Math.abs(velocity.y) > 0.0003) {
         momentumRAF = requestAnimationFrame(applyMomentum);
       } else {
@@ -177,23 +192,28 @@ export default function BasketballScene() {
     window.addEventListener('touchmove', onDragMove, { passive: false });
     window.addEventListener('touchend', onDragEnd);
 
-    // ─── SCROLL-DRIVEN BALL POSITIONING ─────────────────────────
-    function setupScrollBall() {
+    // ─── SCROLL-DRIVEN CAR POSITIONING ─────────────────────────
+    function setupScrollCar() {
       scrollTriggers.push(
         ScrollTrigger.create({
           trigger: '#stats-section',
           start: 'top bottom', end: 'top top', scrub: 2,
           onUpdate: (self) => {
-            if (!ball || isDragging) return;
+            if (!car || isDragging) return;
+            statsProgress = self.progress;
             const t = self.progress;
             const ly = lerp(SECTIONS.hero.y, SECTIONS.stats.y, easeInOut(t));
-            ball.position.x = lerp(SECTIONS.hero.x, SECTIONS.stats.x, t);
-            ball.position.y = ly;
-            ball.position.z = lerp(SECTIONS.hero.z, SECTIONS.stats.z, t) + depthOffset(ly);
-            ball.scale.setScalar(lerp(baseScale * SECTIONS.hero.scale, baseScale * SECTIONS.stats.scale, t));
+            car.position.x = lerp(SECTIONS.hero.x, SECTIONS.stats.x, t);
+            car.position.y = ly;
+            car.position.z = lerp(SECTIONS.hero.z, SECTIONS.stats.z, t) + depthOffset(ly);
+            car.scale.setScalar(lerp(baseScale * SECTIONS.hero.scale, baseScale * SECTIONS.stats.scale, t));
+            if (statsProgress > 0.85 && !statsAligned) {
+              statsAligned = true;
+              gsap.to(car.rotation, { x: 0, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' });
+            }
           },
           onEnter: () => { disableDrag(); currentSection = 'stats'; },
-          onLeaveBack: () => { currentSection = 'hero'; enableDrag(); }
+          onLeaveBack: () => { currentSection = 'hero'; enableDrag(); statsProgress = 0; statsAligned = false; }
         })
       );
 
@@ -202,16 +222,21 @@ export default function BasketballScene() {
           trigger: '#how-section',
           start: 'top bottom', end: 'top top', scrub: 2,
           onUpdate: (self) => {
-            if (!ball || isDragging) return;
+            if (!car || isDragging) return;
+            howProgress = self.progress;
             const t = self.progress;
             const ly = lerp(SECTIONS.stats.y, SECTIONS.how.y, easeInOut(t));
-            ball.position.x = lerp(SECTIONS.stats.x, SECTIONS.how.x, t);
-            ball.position.y = ly;
-            ball.position.z = lerp(SECTIONS.stats.z, SECTIONS.how.z, t) + depthOffset(ly);
-            ball.scale.setScalar(lerp(baseScale * SECTIONS.stats.scale, baseScale * SECTIONS.how.scale, t));
+            car.position.x = lerp(SECTIONS.stats.x, SECTIONS.how.x, t);
+            car.position.y = ly;
+            car.position.z = lerp(SECTIONS.stats.z, SECTIONS.how.z, t) + depthOffset(ly);
+            car.scale.setScalar(lerp(baseScale * SECTIONS.stats.scale, baseScale * SECTIONS.how.scale, t));
+            if (howProgress > 0.85 && !howAligned) {
+              howAligned = true;
+              gsap.to(car.rotation, { x: 0.20, y: 0.8, z: 0, duration: 1.2, ease: 'power2.out' });
+            }
           },
           onEnter:     () => { currentSection = 'how'; },
-          onLeaveBack: () => { currentSection = 'stats'; }
+          onLeaveBack: () => { currentSection = 'stats'; howProgress = 0; howAligned = false; statsAligned = false; if (car) gsap.to(car.rotation, { x: 0, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' }); }
         })
       );
 
@@ -220,16 +245,21 @@ export default function BasketballScene() {
           trigger: '#site-footer',
           start: 'top bottom', end: 'top top', scrub: 2,
           onUpdate: (self) => {
-            if (!ball || isDragging) return;
+            if (!car || isDragging) return;
             const t = self.progress;
             const ly = lerp(SECTIONS.how.y, SECTIONS.footer.y, easeInOut(t));
-            ball.position.x = lerp(SECTIONS.how.x, SECTIONS.footer.x, t);
-            ball.position.y = ly;
-            ball.position.z = lerp(SECTIONS.how.z, SECTIONS.footer.z, t) + depthOffset(ly);
-            ball.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, baseScale * SECTIONS.footer.scale, t));
+            car.position.x = lerp(SECTIONS.how.x, SECTIONS.footer.x, t);
+            car.position.y = ly;
+            car.position.z = lerp(SECTIONS.how.z, SECTIONS.footer.z, t) + depthOffset(ly);
+            car.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, baseScale * SECTIONS.footer.scale, t));
+            const fadeT = Math.min(1, t / 0.5);
+            const opacity = 1 - easeInOut(fadeT);
+            car.traverse((child) => {
+              if (child.isMesh) child.material.opacity = opacity;
+            });
           },
           onEnter:     () => { currentSection = 'footer'; },
-          onLeaveBack: () => { currentSection = 'how'; }
+          onLeaveBack: () => { currentSection = 'how'; howAligned = false; if (car) car.traverse((child) => { if (child.isMesh) child.material.opacity = 1; }); }
         })
       );
     }
@@ -299,16 +329,18 @@ export default function BasketballScene() {
     // ─── RENDER LOOP ────────────────────────────────────────────
     // Tied to GSAP ticker so ScrollTrigger and WebGL stay in sync.
     function animate() {
-      if (ball && !isDragging) {
-        ball.rotation.x += autoVel.x;
-        ball.rotation.y += autoVel.y;
+      if (car && !isDragging) {
+        if ((statsProgress < 0.85 || howProgress > 0.15) && howProgress < 0.85) {
+          car.rotation.x += autoVel.x;
+          car.rotation.y += autoVel.y;
+        }
       }
       renderer.render(scene, camera);
     }
     gsap.ticker.add(animate);
 
     function onLoad() {
-      setupScrollBall();
+      setupScrollCar();
       ScrollTrigger.refresh();
     }
     if (document.readyState === 'complete') {

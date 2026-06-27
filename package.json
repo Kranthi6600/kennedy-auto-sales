@@ -1,5 +1,5 @@
 {
-  "name": "basketball3d",
+  "name": "kennedy-auto-sales",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,10 +10,13 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "^15.1.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "three": "^0.176.0",
-    "gsap": "^3.12.5"
+    "next": "^16.2.9",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "three": "^0.185.0",
+    "gsap": "^3.15.0"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
   }
 }

@@ -155,7 +155,7 @@ body {
 }
 
 /* =============================================
-   THREE.JS CANVAS — FIXED so ball persists across scroll
+   THREE.JS CANVAS — FIXED so car persists across scroll
 ============================================= */
 #hero-canvas {
   position: fixed;
@@ -167,7 +167,7 @@ body {
 #hero-canvas.drag-enabled { pointer-events: all; cursor: grab; }
 #hero-canvas.drag-enabled:active { cursor: grabbing; }
 
-/* Cursor label shown over ball in hero */
+/* Cursor label shown over car in hero */
 .drag-hint {
   position: absolute; bottom: 5.5rem; left: 50%; transform: translateX(-50%);
   font-size: 0.58rem; font-weight: 600; letter-spacing: 4px;
@@ -461,7 +461,7 @@ body {
   font-size: clamp(4.5rem, 9.5vw, 9rem);
   line-height: 0.88; letter-spacing: -1.5px;
   text-transform: uppercase; margin-bottom: 1.4rem;
-  /* Mix-blend creates the see-through effect over the ball */
+  /* Mix-blend creates the see-through effect over the car */
   mix-blend-mode: multiply;
   display: flex; flex-direction: column;
 }
@@ -640,7 +640,7 @@ body {
   line-height: 1; color: rgba(0,0,0,0.025);
   pointer-events: none; user-select: none; white-space: nowrap;
 }
-.how-ball-zone { display: none; }
+.how-car-zone { display: none; }
 .how-content {
   flex: 1; max-width: 600px;
   text-align: right;
@@ -696,7 +696,7 @@ body {
   color: rgba(255,255,255,0.75);
   min-height: 100vh;
 }
-.footer-bg-ball {
+.footer-bg-car {
   position: absolute; bottom: -8rem; right: -8rem;
   width: 500px; height: 500px; border-radius: 50%;
   background: radial-gradient(circle, rgba(255,255,255,0.02) 0%, transparent 70%);
@@ -798,7 +798,7 @@ body {
   .hero-headline { mix-blend-mode: normal; }
   .hero-pricing { justify-content: center; }
   .stats-section, .how-section { flex-direction: column; padding: 6rem 1.5rem; }
-  .how-ball-zone { display: none; }
+  .how-car-zone { display: none; }
   .footer-top { grid-template-columns: 1fr; gap: 2.5rem; }
   .footer-links-grid { grid-template-columns: repeat(2, 1fr); }
   .navbar { padding: 1rem 1.2rem; }
@@ -857,7 +857,7 @@ body {
     pointer-events: all;
   }
 
-  /* Ball fills center on mobile via canvas */
+  /* Car fills center on mobile via canvas */
   #hero-canvas { z-index: 15; }
 
   /* Signature lower-right */
@@ -883,7 +883,7 @@ body {
     padding: 5rem 1.4rem 4rem;
     gap: 2rem;
   }
-  .how-ball-zone { display: none; }
+  .how-car-zone { display: none; }
   .step-item { padding: 1rem 1.2rem; }
   .section-headline { font-size: clamp(2.8rem, 10vw, 4rem); }
 
