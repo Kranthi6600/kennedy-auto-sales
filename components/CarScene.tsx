@@ -12,26 +12,37 @@ gsap.registerPlugin(ScrollTrigger);
 
 const CAR_SCALE = 0.97;
 const FOOTER_SCALE = 0.5;
-const SECTIONS = {
+
+interface SectionConfig {
+  x: number;
+  y: number;
+  z: number;
+  scale: number;
+}
+
+const SECTIONS: Record<string, SectionConfig> = {
   hero:   { x: 0.5,   y: -0.45, z: 0,    scale: CAR_SCALE   },
   stats:  { x: 2.2,   y: -0.3,  z: 0.55, scale: CAR_SCALE   },
   how:    { x: -2.2,  y:  0.0,  z: 0,    scale: CAR_SCALE   },
   footer: { x: 2.5,   y: -1.3,  z: -2.0, scale: FOOTER_SCALE },
 };
 
-function lerp(a, b, t) { return a + (b - a) * t; }
-function easeInOut(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
-function depthOffset(y) { return Math.min(0, y) * 0.3; }
+function lerp(a: number, b: number, t: number): number { return a + (b - a) * t; }
+function easeInOut(t: number): number { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
+function depthOffset(y: number): number { return Math.min(0, y) * 0.3; }
+
+interface Vec2 { x: number; y: number; }
 
 export default function CarScene() {
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    const canvasEl: HTMLCanvasElement = canvas;
 
-    let momentumRAF = null;
-    let scrollTriggers = [];
+    let momentumRAF: number | null = null;
+    const scrollTriggers: ScrollTrigger[] = [];
 
     // ─── RENDERER ───────────────────────────────────────────────
     const renderer = new THREE.WebGLRenderer({
@@ -54,7 +65,7 @@ export default function CarScene() {
     // ─── REFLECTION ENVIRONMENT ─────────────────────────────────
     const pmrem = new THREE.PMREMGenerator(renderer);
     pmrem.compileEquirectangularShader();
-    scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture;
+    scene.environment = pmrem.fromScene(new RoomEnvironment() as unknown as THREE.Scene, 0.04).texture;
 
     // ─── LIGHTING ───────────────────────────────────────────────
     scene.add(new THREE.AmbientLight(0xfff0dd, 0.55));
@@ -69,7 +80,7 @@ export default function CarScene() {
     // ─── CONTACT SHADOW PLANE ──────────────────────────────────
     const shadowCanvas = document.createElement('canvas');
     shadowCanvas.width = 512; shadowCanvas.height = 512;
-    const sctx = shadowCanvas.getContext('2d');
+    const sctx = shadowCanvas.getContext('2d')!;
 
     // Layer 1: wide soft outer falloff
     sctx.save();
@@ -121,17 +132,15 @@ export default function CarScene() {
 
     function updateShadow() {
       if (!car) return;
-      // Offset toward key light direction (left) for realistic directional shadow
       shadowPlane.position.x = car.position.x - 0.2;
       shadowPlane.position.z = car.position.z + 0.1;
       shadowPlane.position.y = car.position.y - 0.65;
-      // Shadow grows and softens as car rises
       const heightFactor = 1 + Math.max(0, -car.position.y) * 0.15;
       shadowPlane.scale.set(heightFactor, heightFactor, 1);
     }
 
     // ─── CAR STATE ─────────────────────────────────────────────
-    let car = null;
+    let car: THREE.Group | null = null;
     let carLoaded = false;
     let baseScale = 1;
     let currentSection = "hero";
@@ -165,10 +174,12 @@ export default function CarScene() {
     loader.load('/models/2021_ford_bronco_2-door.glb', (gltf) => {
       car = gltf.scene;
 
-      car.traverse((child) => {
-        if (child.isMesh) {
-          child.material.transparent = true;
-          child.material.opacity = 1;
+      car.traverse((child: THREE.Object3D) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          const mat = mesh.material as THREE.Material;
+          mat.transparent = true;
+          mat.opacity = 1;
         }
       });
 
@@ -185,35 +196,35 @@ export default function CarScene() {
       carLoaded = true;
       carEntrance();
       ScrollTrigger.refresh();
-    }, undefined, (err) => console.error('GLB Error:', err));
+    }, undefined, (err: unknown) => console.error('GLB Error:', err));
 
     // ─── DRAG PHYSICS ───────────────────────────────────────────
     let isDragging = false;
-    let prevMouse = { x: 0, y: 0 };
-    let velocity = { x: 0, y: 0 };
+    let prevMouse: Vec2 = { x: 0, y: 0 };
+    let velocity: Vec2 = { x: 0, y: 0 };
     const DAMPING = 0.94;
     const BASE_SPEED = 0.003;
-    let autoVel = {
+    let autoVel: Vec2 = {
       x: (Math.random() - 0.5) * 0.003,
       y: BASE_SPEED + Math.random() * 0.002,
     };
 
-    function enableDrag()  { canvas.classList.add('drag-enabled'); }
-    function disableDrag() { canvas.classList.remove('drag-enabled'); }
+    function enableDrag()  { canvasEl.classList.add('drag-enabled'); }
+    function disableDrag() { canvasEl.classList.remove('drag-enabled'); }
 
-    function getPos(e) {
-      if (e.touches && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      return { x: e.clientX, y: e.clientY };
+    function getPos(e: MouseEvent | TouchEvent): Vec2 {
+      if ('touches' in e && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      return { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
     }
 
-    function onDragStart(e) {
+    function onDragStart(e: MouseEvent | TouchEvent) {
       if (!carLoaded || currentSection !== "hero") return;
       isDragging = true;
       prevMouse = getPos(e);
       velocity = { x: 0, y: 0 };
       if (momentumRAF) cancelAnimationFrame(momentumRAF);
     }
-    function onDragMove(e) {
+    function onDragMove(e: MouseEvent | TouchEvent) {
       if (!isDragging || !car) return;
       if (e.cancelable) e.preventDefault();
       const pos = getPos(e);
@@ -249,10 +260,10 @@ export default function CarScene() {
       }
     }
 
-    canvas.addEventListener('mousedown', onDragStart);
+    canvasEl.addEventListener('mousedown', onDragStart);
     window.addEventListener('mousemove', onDragMove);
     window.addEventListener('mouseup', onDragEnd);
-    canvas.addEventListener('touchstart', onDragStart, { passive: false });
+    canvasEl.addEventListener('touchstart', onDragStart, { passive: false });
     window.addEventListener('touchmove', onDragMove, { passive: false });
     window.addEventListener('touchend', onDragEnd);
 
@@ -318,13 +329,15 @@ export default function CarScene() {
             car.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, baseScale * SECTIONS.footer.scale, t));
             const fadeT = Math.min(1, t / 0.5);
             const opacity = 1 - easeInOut(fadeT);
-            car.traverse((child) => {
-              if (child.isMesh) child.material.opacity = opacity;
+            car.traverse((child: THREE.Object3D) => {
+              if ((child as THREE.Mesh).isMesh) {
+                ((child as THREE.Mesh).material as THREE.Material).opacity = opacity;
+              }
             });
             shadowMat.opacity = 0;
           },
           onEnter:     () => { currentSection = 'footer'; },
-          onLeaveBack: () => { currentSection = 'how'; howAligned = false; if (car) car.traverse((child) => { if (child.isMesh) child.material.opacity = 1; }); }
+          onLeaveBack: () => { currentSection = 'how'; howAligned = false; if (car) car.traverse((child: THREE.Object3D) => { if ((child as THREE.Mesh).isMesh) ((child as THREE.Mesh).material as THREE.Material).opacity = 1; }); }
         })
       );
     }
@@ -392,7 +405,6 @@ export default function CarScene() {
     window.addEventListener('resize', onResize);
 
     // ─── RENDER LOOP ────────────────────────────────────────────
-    // Tied to GSAP ticker so ScrollTrigger and WebGL stay in sync.
     function animate() {
       if (car && !isDragging) {
         if ((statsProgress < 0.85 || howProgress > 0.15) && howProgress < 0.85) {
@@ -426,8 +438,8 @@ export default function CarScene() {
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('load', onLoad);
-      canvas.removeEventListener('mousedown', onDragStart);
-      canvas.removeEventListener('touchstart', onDragStart);
+      canvasEl.removeEventListener('mousedown', onDragStart);
+      canvasEl.removeEventListener('touchstart', onDragStart);
       if (eventCardEl) {
         eventCardEl.removeEventListener('mouseenter', onCardEnter);
         eventCardEl.removeEventListener('mouseleave', onCardLeave);

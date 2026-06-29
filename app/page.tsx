@@ -1,4 +1,6 @@
-import CarScene from '../components/CarScene';
+import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
+import CarSceneLazy from '../components/CarSceneLazy';
 
 export default function Home() {
   return (
@@ -9,29 +11,17 @@ export default function Home() {
       <svg style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
         <defs>
           <filter id="lg-distort" x="-5%" y="-5%" width="110%" height="110%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.004 0.008" numOctaves="1" result="turbulence" />
+            <feTurbulence type="fractalNoise" baseFrequency="0.004 0.008" numOctaves={1} result="turbulence" />
             <feDisplacementMap in="SourceGraphic" in2="turbulence" scale="35" xChannelSelector="R" yChannelSelector="G" />
           </filter>
         </defs>
       </svg>
 
-      {/* NAVBAR */}
-      <nav className="navbar" id="navbar">
-        <span className="nav-logo">Kennedy Auto Sales</span>
-        <div className="nav-links">
-          <a href="#hero-section" className="nav-link">Inventory</a>
-          <a href="#stats-section" className="nav-link">Why Us</a>
-          <a href="#how-section" className="nav-link">How it works</a>
-          <a href="#site-footer" className="nav-link">About</a>
-        </div>
-        <button className="profile-btn glass-pill">
-          <span className="pulse-dot" /> My Garage
-        </button>
-      </nav>
+      <Navbar />
 
       {/* HERO SECTION */}
       <section className="section hero-section" id="hero-section">
-        <CarScene />
+        <CarSceneLazy />
 
         {/* Product Hunt badge */}
         <div className="ph-badge-wrap" id="ph-badge">
@@ -54,7 +44,7 @@ export default function Home() {
           <div className="ec-edge" />
           <div className="ec-content">
             <div className="ec-image">
-              <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=560&q=80" alt="2025 Ford Bronco — premium SUV inventory" />
+              <img src="https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=560&q=80" alt="2025 Ford Bronco — premium SUV inventory" fetchPriority="high" decoding="async" />
               <div className="ec-img-shade" />
               <div className="ec-img-top">
                 <span className="ec-time-pill">2025 Model</span>
@@ -98,7 +88,7 @@ export default function Home() {
 
         {/* Hero text */}
         <div className="hero-text" id="hero-text">
-          <span className="hero-eyebrow">EXPLORE INVENTORY</span>
+          <span className="hero-eyebrow">EXPLORE HOME</span>
           <h1 className="hero-headline">
             <span className="hl-line">FIND YOUR</span>
             <span className="hl-line">DREAM</span>
@@ -176,7 +166,7 @@ export default function Home() {
             <div className="step-item glass-card" id="step-1">
               <div className="step-number">01</div>
               <div className="step-info">
-                <h3 className="step-title">Browse Inventory</h3>
+                <h3 className="step-title">Browse Home</h3>
                 <p className="step-desc">Search 12,000+ new and certified pre-owned vehicles. Filter by make, body type, price range, fuel type, or location.</p>
               </div>
               <div className="step-arrow">→</div>
@@ -199,7 +189,7 @@ export default function Home() {
             </div>
           </div>
           <div className="cta-row">
-            <button className="cta-main-btn">Shop Inventory →</button>
+            <button className="cta-main-btn">Shop Home →</button>
             <div className="ph-embed glass-pill">
               <svg width="18" height="18" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="120" cy="120" r="120" fill="#DA552F" />
@@ -215,80 +205,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="site-footer" id="site-footer">
-        <div className="footer-bg-car" />
-        <div className="footer-inner">
-          <div className="footer-top">
-            <div className="footer-brand">
-              <div className="footer-logo">Kennedy Auto Sales</div>
-              <p className="footer-tagline">Your trusted car dealership in<br />Scarborough, Ontario, Canada.</p>
-              <div className="footer-socials">
-                <a href="#" className="social-pill glass-pill">𝕏 Twitter</a>
-                <a href="#" className="social-pill glass-pill">▶ Instagram</a>
-                <a href="#" className="social-pill glass-pill">in LinkedIn</a>
-              </div>
-            </div>
-            <div className="footer-links-grid">
-              <div className="footer-col">
-                <span className="footer-col-title">Inventory</span>
-                <a href="#" className="footer-link">New Cars</a>
-                <a href="#" className="footer-link">Certified Pre-Owned</a>
-                <a href="#" className="footer-link">Electric Vehicles</a>
-                <a href="#" className="footer-link">Luxury &amp; Exotic</a>
-              </div>
-              <div className="footer-col">
-                <span className="footer-col-title">Services</span>
-                <a href="#" className="footer-link">Financing</a>
-                <a href="#" className="footer-link">Trade-In Valuation</a>
-                <a href="#" className="footer-link">Schedule Test Drive</a>
-                <a href="#" className="footer-link">Home Delivery</a>
-              </div>
-              <div className="footer-col">
-                <span className="footer-col-title">Company</span>
-                <a href="#" className="footer-link">About Us</a>
-                <a href="#" className="footer-link">Locations</a>
-                <a href="#" className="footer-link">Careers</a>
-                <a href="#" className="footer-link">Contact</a>
-              </div>
-            </div>
-            <div className="footer-newsletter">
-              <span className="newsletter-title">Get exclusive offers</span>
-              <p className="newsletter-desc">Join our list for new arrivals, financing deals, and member-only pricing.</p>
-              <div className="newsletter-input-row">
-                <input type="email" placeholder="your@email.com" className="newsletter-input" />
-                <button className="newsletter-btn">→</button>
-              </div>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <div className="footer-bottom-left">
-              <span className="footer-copy">© 2025 Kennedy Auto Sales. All rights reserved.</span>
-              <div className="footer-legal">
-                <a href="#" className="legal-link">Privacy</a>
-                <span className="sep">·</span>
-                <a href="#" className="legal-link">Terms</a>
-                <span className="sep">·</span>
-                <a href="#" className="legal-link">Cookies</a>
-              </div>
-            </div>
-            <div className="footer-ph-badge">
-              <svg width="16" height="16" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="120" cy="120" r="120" fill="#DA552F" />
-                <path d="M138 120h-28V90h28a15 15 0 010 30zm0-50h-48v100h20v-30h28a35 35 0 000-70z" fill="#fff" />
-              </svg>
-              <span>Best Dealer Award 2025</span>
-            </div>
-            <div className="footer-cities">
-              <span className="cities-label">SERVING THE GTA</span>
-              <div className="cities-scroll">
-                <span>SCARBOROUGH · TORONTO · MARKHAM · PICKERING · MISSISSAUGA · BRAMPTON · AJAX · WHITBY · OSHAWA · NEWMARKET ·&nbsp;</span>
-                <span aria-hidden="true">SCARBOROUGH · TORONTO · MARKHAM · PICKERING · MISSISSAUGA · BRAMPTON · AJAX · WHITBY · OSHAWA · NEWMARKET ·&nbsp;</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }
