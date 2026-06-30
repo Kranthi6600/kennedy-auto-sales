@@ -22,7 +22,8 @@ export default function BlogsPage() {
     fetchBlogs({ limit: 100, sortBy: "published_at", sortOrder: "desc" })
       .then((res) => {
         if (!cancelled) {
-          setBlogs(res.data);
+          const list = Array.isArray(res) ? res : (res.blogs ?? res.data ?? []);
+          setBlogs(list);
           setLoading(false);
         }
       })

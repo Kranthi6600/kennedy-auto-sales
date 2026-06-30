@@ -27,7 +27,7 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ slug: 
     fetchServiceBySlug(slug)
       .then((res) => {
         if (!cancelled) {
-          setService(res.data);
+          setService(res.service ?? res.data ?? res);
           setLoading(false);
         }
       })
@@ -40,7 +40,8 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ slug: 
     fetchServices({ limit: 100 })
       .then((res) => {
         if (!cancelled) {
-          setOtherServices(res.data.filter((s) => s.slug !== slug).slice(0, 4));
+          const list = Array.isArray(res) ? res : (res.services ?? res.data ?? []);
+          setOtherServices(list.filter((s) => s.slug !== slug).slice(0, 4));
         }
       })
       .catch(() => {});

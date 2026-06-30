@@ -18,7 +18,8 @@ export default function ServicesPage() {
     fetchServices({ limit: 100, sortBy: "created_at", sortOrder: "desc" })
       .then((res) => {
         if (!cancelled) {
-          setServices(res.data);
+          const list = Array.isArray(res) ? res : (res.services ?? res.data ?? []);
+          setServices(list);
           setLoading(false);
         }
       })

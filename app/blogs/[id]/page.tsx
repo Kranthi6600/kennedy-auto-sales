@@ -27,7 +27,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
     fetchBlogBySlug(slug)
       .then((res) => {
         if (!cancelled) {
-          setBlog(res.data);
+          setBlog(res.blog ?? res.data ?? res);
           setLoading(false);
         }
       })
@@ -40,7 +40,8 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
     fetchBlogs({ limit: 100 })
       .then((res) => {
         if (!cancelled) {
-          setOtherBlogs(res.data.filter((b) => b.slug !== slug).slice(0, 3));
+          const list = Array.isArray(res) ? res : (res.blogs ?? res.data ?? []);
+          setOtherBlogs(list.filter((b) => b.slug !== slug).slice(0, 3));
         }
       })
       .catch(() => {});

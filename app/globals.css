@@ -2807,11 +2807,12 @@ a.contact-card-value:hover { text-decoration: underline; text-underline-offset: 
   line-height: 1.7;
 }
 .service-detail-features h2,
-.service-detail-faqs h2 {
+.service-detail-faqs h2,
+.blog-detail-faqs h2 {
   font-size: 1.3rem;
   font-weight: 700;
   color: var(--ink);
-  margin-bottom: 1.2rem;
+  margin-bottom: 1.5rem;
 }
 .service-features-grid {
   display: grid;

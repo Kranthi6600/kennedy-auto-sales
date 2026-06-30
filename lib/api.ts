@@ -1,4 +1,4 @@
-const API_BASE = "/api";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
 
 export interface InventoryItem {
   id: string;
@@ -170,11 +170,13 @@ export interface ServiceDetailItem extends ServiceItem {
 
 export interface ServiceListResponse {
   data: ServiceItem[];
+  services: ServiceItem[];
   pagination: Pagination;
 }
 
 export interface ServiceDetailResponse {
   data: ServiceDetailItem;
+  service: ServiceDetailItem;
 }
 
 export async function fetchServices(params?: {
@@ -277,11 +279,13 @@ export interface BlogDetailItem extends BlogItem {
 
 export interface BlogListResponse {
   data: BlogItem[];
+  blogs: BlogItem[];
   pagination: Pagination;
 }
 
 export interface BlogDetailResponse {
   data: BlogDetailItem;
+  blog: BlogDetailItem;
 }
 
 export async function fetchBlogs(params?: {
