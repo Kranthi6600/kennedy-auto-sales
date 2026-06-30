@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const API_BASE = process.env.SAAS_API_BASE!;
-const CLIENT_ID = process.env.SAAS_CLIENT_ID!;
+const API_BASE = process.env.SAAS_API_BASE || "https://wehoware-saas.vercel.app";
+const CLIENT_ID = process.env.SAAS_CLIENT_ID || "035053d7-da03-4a53-ae55-1797306cd7ad";
 
 export async function GET(
   _request: NextRequest,
