@@ -22,7 +22,7 @@ interface SectionConfig {
 
 const SECTIONS: Record<string, SectionConfig> = {
   hero:   { x: 0.5,   y: -0.45, z: 0,    scale: CAR_SCALE   },
-  stats:  { x: 2.2,   y: -0.3,  z: 0.55, scale: CAR_SCALE   },
+  stats:  { x: 1.8,   y: -0.2,  z: 0.55, scale: CAR_SCALE   },
   how:    { x: -2.2,  y:  0.0,  z: 0,    scale: CAR_SCALE   },
   footer: { x: 2.5,   y: -1.3,  z: -2.0, scale: FOOTER_SCALE },
 };
@@ -284,7 +284,7 @@ export default function CarScene() {
             car.scale.setScalar(lerp(baseScale * SECTIONS.hero.scale, baseScale * SECTIONS.stats.scale, t));
             if (statsProgress > 0.85 && !statsAligned) {
               statsAligned = true;
-              gsap.to(car.rotation, { x: 0, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' });
+              gsap.to(car.rotation, { x: 0.15, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' });
             }
           },
           onEnter: () => { disableDrag(); currentSection = 'stats'; shadowMat.opacity = 0; },
@@ -307,11 +307,11 @@ export default function CarScene() {
             car.scale.setScalar(lerp(baseScale * SECTIONS.stats.scale, baseScale * SECTIONS.how.scale, t));
             if (howProgress > 0.85 && !howAligned) {
               howAligned = true;
-              gsap.to(car.rotation, { x: 0.20, y: 0.8, z: 0, duration: 1.2, ease: 'power2.out' });
+              gsap.to(car.rotation, { x: 0.25, y: 0.8, z: 0, duration: 1.2, ease: 'power2.out' });
             }
           },
           onEnter:     () => { currentSection = 'how'; },
-          onLeaveBack: () => { currentSection = 'stats'; howProgress = 0; howAligned = false; statsAligned = false; if (car) gsap.to(car.rotation, { x: 0, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' }); shadowMat.opacity = 0; }
+          onLeaveBack: () => { currentSection = 'stats'; howProgress = 0; howAligned = false; statsAligned = false; if (car) gsap.to(car.rotation, { x: 0.15, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' }); shadowMat.opacity = 0; }
         })
       );
 
