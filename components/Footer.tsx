@@ -49,7 +49,7 @@ export default function Footer() {
         </div>
         <div className="footer-bottom">
           <div className="footer-bottom-left">
-            <span className="footer-copy">© 2025 Kennedy Auto Sales. All rights reserved.</span>
+            <span className="footer-copy">© {new Date().getFullYear()} Kennedy Auto Sales. All rights reserved.</span>
             <div className="footer-legal">
               <a href="#" className="legal-link">Privacy</a>
               <span className="sep">·</span>
