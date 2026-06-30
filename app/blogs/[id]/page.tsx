@@ -1,34 +1,92 @@
-import type { Metadata } from 'next';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import Navbar from '../../../components/Navbar';
-import Footer from '../../../components/Footer';
-import { blogPosts, getPostById, getRelatedPosts } from '../../../lib/blogData';
+"use client";
 
-interface PageProps {
-  params: Promise<{ id: string }>;
-}
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Navbar from "../../../components/Navbar";
+import Footer from "../../../components/Footer";
+import { fetchBlogBySlug, fetchBlogs, type BlogDetailItem, type BlogItem } from "../../../lib/api";
+import { sanitizeHtml, stripTags } from "../../../lib/sanitize";
 
-export async function generateStaticParams() {
-  return blogPosts.map((post) => ({ id: String(post.id) }));
-}
+export default function BlogDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const [slug, setSlug] = useState<string>("");
+  const [blog, setBlog] = useState<BlogDetailItem | null>(null);
+  const [otherBlogs, setOtherBlogs] = useState<BlogItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params;
-  const post = getPostById(Number(id));
-  if (!post) return { title: 'Post Not Found — Kennedy Auto Sales' };
-  return {
-    title: `${post.title} — Kennedy Auto Sales`,
-    description: post.excerpt,
+  useEffect(() => {
+    params.then((p) => setSlug(p.id));
+  }, [params]);
+
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchBlogBySlug(slug)
+      .then((res) => {
+        if (!cancelled) {
+          setBlog(res.data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err.message || "Failed to load blog");
+          setLoading(false);
+        }
+      });
+    fetchBlogs({ limit: 100 })
+      .then((res) => {
+        if (!cancelled) {
+          setOtherBlogs(res.data.filter((b) => b.slug !== slug).slice(0, 3));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [slug]);
+
+  const formatDate = (iso: string | null) => {
+    if (!iso) return "";
+    return new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   };
-}
 
-export default async function BlogDetailPage({ params }: PageProps) {
-  const { id } = await params;
-  const post = getPostById(Number(id));
-  if (!post) notFound();
+  if (loading || !slug) {
+    return (
+      <>
+        <Navbar />
+        <section className="subpage-section">
+          <div className="car-detail-loading">
+            <div className="car-detail-skeleton">
+              <div className="skeleton-img skeleton-large" />
+              <div className="skeleton-body">
+                <div className="skeleton-line w-60" />
+                <div className="skeleton-line w-40" />
+                <div className="skeleton-line w-80" />
+              </div>
+            </div>
+          </div>
+        </section>
+        <Footer />
+      </>
+    );
+  }
 
-  const related = getRelatedPosts(post.id);
+  if (error || !blog) {
+    return (
+      <>
+        <Navbar />
+        <section className="subpage-section">
+          <div className="inv-error-state">
+            <p>{error || "Blog post not found."}</p>
+            <Link href="/blogs" className="cta-main-btn">Back to Blog →</Link>
+          </div>
+        </section>
+        <Footer />
+      </>
+    );
+  }
 
   return (
     <>
@@ -37,33 +95,110 @@ export default async function BlogDetailPage({ params }: PageProps) {
       <article className="blog-detail">
         <div className="blog-detail-header">
           <Link href="/blogs" className="blog-detail-back">← Back to Blog</Link>
-          <span className="blog-detail-category">{post.category}</span>
-          <h1 className="blog-detail-title">{post.title}</h1>
+          {blog.wehoware_blog_categories && (
+            <span className="blog-detail-category">{blog.wehoware_blog_categories.name}</span>
+          )}
+          <h1 className="blog-detail-title">{blog.title}</h1>
           <div className="blog-detail-meta">
-            <div className="blog-detail-author">
-              <div className="blog-detail-avatar">{post.author.charAt(0)}</div>
-              <div className="blog-detail-author-info">
-                <span className="blog-detail-author-name">{post.author}</span>
-                <span className="blog-detail-author-role">{post.authorRole}</span>
-              </div>
-            </div>
             <div className="blog-detail-info">
-              <span>{post.date}</span>
+              <span>{formatDate(blog.published_at || blog.created_at)}</span>
+              {blog.read_time && (
+                <>
+                  <span className="blog-detail-dot">·</span>
+                  <span>{blog.read_time} min read</span>
+                </>
+              )}
               <span className="blog-detail-dot">·</span>
-              <span>{post.readTime}</span>
+              <span>{blog.views} views</span>
             </div>
           </div>
         </div>
 
-        <div className="blog-detail-hero">
-          <img src={post.img} alt={post.title} fetchPriority="high" decoding="async" />
-        </div>
+        {blog.thumbnail && (
+          <div className="blog-detail-hero">
+            <img
+              src={blog.thumbnail}
+              alt={blog.thumbnail_alt || blog.title}
+              fetchPriority="high"
+              decoding="async"
+            />
+          </div>
+        )}
 
-        <div className="blog-detail-content">
-          {post.content.map((paragraph, i) => (
-            <p key={i}>{paragraph}</p>
-          ))}
-        </div>
+        {blog.excerpt && (
+          <div className="blog-detail-excerpt">
+            <p>{stripTags(blog.excerpt)}</p>
+          </div>
+        )}
+
+        {blog.content && (
+          <div
+            className="blog-detail-content"
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(blog.content) }}
+          />
+        )}
+
+        {blog.tags && blog.tags.length > 0 && (
+          <div className="blog-detail-tags">
+            {blog.tags.map((tag) => (
+              <span key={tag} className="blog-detail-tag">{tag}</span>
+            ))}
+          </div>
+        )}
+
+        {blog.faqs && blog.faqs.length > 0 && (
+          <div className="blog-detail-faqs">
+            <h2>Frequently Asked Questions</h2>
+            <div className="service-faq-list">
+              {blog.faqs.map((faq, i) => (
+                <div key={faq.id || i} className="service-faq-item">
+                  <button
+                    className={`service-faq-q ${openFaq === i ? 'open' : ''}`}
+                    onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  >
+                    {faq.question}
+                    <span className="service-faq-toggle">{openFaq === i ? '−' : '+'}</span>
+                  </button>
+                  {openFaq === i && (
+                    <div className="service-faq-a">
+                      <p>{faq.answer}</p>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {blog.related_services && blog.related_services.length > 0 && (
+          <div className="blog-detail-related-services">
+            <h2>Related Services</h2>
+            <div className="service-related-grid">
+              {blog.related_services.map((svc) => (
+                <Link key={svc.id} href={`/services/${svc.slug}`} className="service-related-card glass-card">
+                  {svc.thumbnail && (
+                    <img src={svc.thumbnail} alt={svc.title} loading="lazy" decoding="async" />
+                  )}
+                  <h3>{svc.title}</h3>
+                  {svc.description && <p>{stripTags(svc.description)}</p>}
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {blog.cta_heading && (
+          <div className="blog-detail-cta glass-card">
+            <h2>{blog.cta_heading}</h2>
+            {blog.cta_body && <p>{blog.cta_body}</p>}
+            <Link
+              href={blog.cta_button_url || "/contact"}
+              className="cta-main-btn"
+            >
+              {blog.cta_button_text || "Get in Touch →"}
+            </Link>
+          </div>
+        )}
 
         <div className="blog-detail-share">
           <span className="blog-detail-share-label">Share this article:</span>
@@ -74,23 +209,30 @@ export default async function BlogDetailPage({ params }: PageProps) {
         </div>
       </article>
 
-      {related.length > 0 && (
+      {otherBlogs.length > 0 && (
         <section className="blog-detail-related">
           <h2 className="blog-detail-related-title">Related Articles</h2>
           <div className="blog-grid">
-            {related.map((rp) => (
+            {otherBlogs.map((rp) => (
               <article key={rp.id} className="blog-card glass-card">
                 <div className="blog-card-img">
-                  <img src={rp.img} alt={rp.title} loading="lazy" decoding="async" />
-                  <span className="blog-category">{rp.category}</span>
+                  <img
+                    src={rp.thumbnail || "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?auto=format&fit=crop&w=800&q=80"}
+                    alt={rp.thumbnail_alt || rp.title}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  {rp.wehoware_blog_categories && (
+                    <span className="blog-category">{rp.wehoware_blog_categories.name}</span>
+                  )}
                 </div>
                 <div className="blog-card-body">
-                  <span className="blog-date">{rp.date}</span>
-                  <Link href={`/blogs/${rp.id}`} className="blog-title-link">
+                  <span className="blog-date">{formatDate(rp.published_at || rp.created_at)}</span>
+                  <Link href={`/blogs/${rp.slug}`} className="blog-title-link">
                     <h3 className="blog-title">{rp.title}</h3>
                   </Link>
-                  <p className="blog-excerpt">{rp.excerpt}</p>
-                  <Link href={`/blogs/${rp.id}`} className="blog-read-more">Read more →</Link>
+                  <p className="blog-excerpt">{rp.excerpt || ""}</p>
+                  <Link href={`/blogs/${rp.slug}`} className="blog-read-more">Read more →</Link>
                 </div>
               </article>
             ))}

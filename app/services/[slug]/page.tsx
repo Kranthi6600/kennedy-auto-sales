@@ -4,19 +4,50 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
-import { services, getServiceBySlug } from "../../../lib/services";
+import { fetchServiceBySlug, fetchServices, type ServiceDetailItem, type ServiceItem } from "../../../lib/api";
+import { sanitizeHtml, stripTags } from "../../../lib/sanitize";
 
 export default function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const [slug, setSlug] = useState<string>("");
+  const [service, setService] = useState<ServiceDetailItem | null>(null);
+  const [otherServices, setOtherServices] = useState<ServiceItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
   useEffect(() => {
     params.then((p) => setSlug(p.slug));
   }, [params]);
 
-  const service = slug ? getServiceBySlug(slug) : undefined;
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+    fetchServiceBySlug(slug)
+      .then((res) => {
+        if (!cancelled) {
+          setService(res.data);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setError(err.message || "Failed to load service");
+          setLoading(false);
+        }
+      });
+    fetchServices({ limit: 100 })
+      .then((res) => {
+        if (!cancelled) {
+          setOtherServices(res.data.filter((s) => s.slug !== slug).slice(0, 4));
+        }
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [slug]);
 
-  if (!slug) {
+  if (loading || !slug) {
     return (
       <>
         <Navbar />
@@ -37,13 +68,13 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ slug: 
     );
   }
 
-  if (!service) {
+  if (error || !service) {
     return (
       <>
         <Navbar />
         <section className="subpage-section">
           <div className="inv-error-state">
-            <p>Service not found.</p>
+            <p>{error || "Service not found."}</p>
             <Link href="/services" className="cta-main-btn">Back to Services →</Link>
           </div>
         </section>
@@ -51,8 +82,6 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ slug: 
       </>
     );
   }
-
-  const otherServices = services.filter((s) => s.slug !== service.slug).slice(0, 3);
 
   return (
     <>
@@ -64,93 +93,130 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ slug: 
         </div>
 
         <div className="service-detail-hero glass-card">
-          <div className="service-detail-icon">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d={service.icon} />
-            </svg>
-          </div>
+          {service.thumbnail && (
+            <div className="service-detail-hero-img">
+              <img
+                src={service.thumbnail}
+                alt={service.thumbnail_alt || service.title}
+                fetchPriority="high"
+                decoding="async"
+              />
+            </div>
+          )}
           <div className="service-detail-hero-text">
             <span className="section-eyebrow">OUR SERVICES</span>
-            <h1 className="service-detail-title" dangerouslySetInnerHTML={{ __html: service.title }} />
-            <p className="service-detail-tagline">{service.desc}</p>
+            <h1 className="service-detail-title">{service.title}</h1>
+            <p className="service-detail-tagline">{service.description || ""}</p>
+            {service.wehoware_service_categories && (
+              <span className="service-detail-category">{service.wehoware_service_categories.name}</span>
+            )}
+            {service.duration && (
+              <span className="service-detail-duration">⏱ {service.duration}</span>
+            )}
+            {service.fee !== null && service.fee !== undefined && (
+              <span className="service-detail-fee">
+                {service.fee_label || `${service.fee} ${service.fee_currency || ""}`}
+              </span>
+            )}
           </div>
         </div>
 
         <div className="service-detail-layout">
           <div className="service-detail-main">
-            <div className="service-detail-overview glass-card">
-              <h2>Overview</h2>
-              <p>{service.longDesc}</p>
-            </div>
-
-            <div className="service-detail-features">
-              <h2>What's Included</h2>
-              <div className="service-features-grid">
-                {service.features.map((f, i) => (
-                  <div key={i} className="service-feature-card glass-card">
-                    <h3>{f.title}</h3>
-                    <p>{f.desc}</p>
-                  </div>
-                ))}
+            {service.content && (
+              <div className="service-detail-overview glass-card">
+                <h2>Overview</h2>
+                <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(service.content) }} />
               </div>
-            </div>
+            )}
 
-            <div className="service-detail-key-points glass-card">
-              <h2>Key Benefits</h2>
-              <ul className="service-points-large">
-                {service.points.map((point, i) => (
-                  <li key={i}>
-                    <span className="service-check">✓</span>
-                    {point}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="service-detail-faqs">
-              <h2>Frequently Asked Questions</h2>
-              <div className="service-faq-list">
-                {service.faqs.map((faq, i) => (
-                  <div key={i} className="service-faq-item">
-                    <button
-                      className={`service-faq-q ${openFaq === i ? 'open' : ''}`}
-                      onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                    >
-                      {faq.q}
-                      <span className="service-faq-toggle">{openFaq === i ? '−' : '+'}</span>
-                    </button>
-                    {openFaq === i && (
-                      <div className="service-faq-a">
-                        <p>{faq.a}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
+            {service.description && !service.content && (
+              <div className="service-detail-overview glass-card">
+                <h2>Overview</h2>
+                <p>{service.description}</p>
               </div>
-            </div>
+            )}
+
+            {service.tags && service.tags.length > 0 && (
+              <div className="service-detail-key-points glass-card">
+                <h2>Key Benefits</h2>
+                <ul className="service-points-large">
+                  {service.tags.map((tag, i) => (
+                    <li key={i}>
+                      <span className="service-check">✓</span>
+                      {tag}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {service.faqs && service.faqs.length > 0 && (
+              <div className="service-detail-faqs">
+                <h2>Frequently Asked Questions</h2>
+                <div className="service-faq-list">
+                  {service.faqs.map((faq, i) => (
+                    <div key={faq.id || i} className="service-faq-item">
+                      <button
+                        className={`service-faq-q ${openFaq === i ? 'open' : ''}`}
+                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                      >
+                        {faq.question}
+                        <span className="service-faq-toggle">{openFaq === i ? '−' : '+'}</span>
+                      </button>
+                      {openFaq === i && (
+                        <div className="service-faq-a">
+                          <p>{faq.answer}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {service.related_blogs && service.related_blogs.length > 0 && (
+              <div className="service-detail-related">
+                <h2>Related Articles</h2>
+                <div className="service-related-grid">
+                  {service.related_blogs.map((blog) => (
+                    <Link key={blog.id} href={`/blogs/${blog.slug}`} className="service-related-card glass-card">
+                      {blog.thumbnail && (
+                        <img src={blog.thumbnail} alt={blog.title} loading="lazy" decoding="async" />
+                      )}
+                      <h3>{blog.title}</h3>
+                      {blog.excerpt && <p>{stripTags(blog.excerpt)}</p>}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <aside className="service-detail-sidebar">
             <div className="service-detail-cta-card glass-card">
-              <h3>Ready to get started?</h3>
-              <p>Contact us today to learn more about this service.</p>
-              <Link href="/contact" className="cta-main-btn">Get in Touch →</Link>
+              <h3>{service.cta_heading || "Ready to get started?"}</h3>
+              <p>{service.cta_body || "Contact us today to learn more about this service."}</p>
+              <Link
+                href={service.cta_button_url || "/contact"}
+                className="cta-main-btn"
+              >
+                {service.cta_button_text || "Get in Touch →"}
+              </Link>
               <Link href="/inventory" className="service-detail-secondary-link">Browse Inventory →</Link>
             </div>
 
-            <div className="service-detail-other">
-              <h3>Other Services</h3>
-              {otherServices.map((s) => (
-                <Link key={s.slug} href={`/services/${s.slug}`} className="service-detail-other-item">
-                  <div className="service-detail-other-icon">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d={s.icon} />
-                    </svg>
-                  </div>
-                  <span dangerouslySetInnerHTML={{ __html: s.title }} />
-                </Link>
-              ))}
-            </div>
+            {otherServices.length > 0 && (
+              <div className="service-detail-other">
+                <h3>Other Services</h3>
+                {otherServices.map((s) => (
+                  <Link key={s.id} href={`/services/${s.slug}`} className="service-detail-other-item">
+                    <span>{s.title}</span>
+                    <span className="service-detail-other-arrow">→</span>
+                  </Link>
+                ))}
+              </div>
+            )}
           </aside>
         </div>
 
