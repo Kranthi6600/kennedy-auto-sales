@@ -107,7 +107,7 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ slug: 
           <div className="service-detail-hero-text">
             <span className="section-eyebrow">OUR SERVICES</span>
             <h1 className="service-detail-title">{service.title}</h1>
-            <p className="service-detail-tagline">{service.description || ""}</p>
+            <p className="service-detail-tagline">{stripTags(service.description || "")}</p>
             {service.wehoware_service_categories && (
               <span className="service-detail-category">{service.wehoware_service_categories.name}</span>
             )}

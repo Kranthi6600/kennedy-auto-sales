@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { fetchServices, type ServiceItem } from "../../lib/api";
+import { stripTags } from "../../lib/sanitize";
 
 export default function ServicesPage() {
   const [services, setServices] = useState<ServiceItem[]>([]);
@@ -80,7 +81,7 @@ export default function ServicesPage() {
                 )}
                 <div className="service-card-body">
                   <h3 className="service-title">{service.title}</h3>
-                  <p className="service-desc">{service.description || ""}</p>
+                  <p className="service-desc">{stripTags(service.description || "")}</p>
                   {service.tags && service.tags.length > 0 && (
                     <ul className="service-points">
                       {service.tags.slice(0, 3).map((tag, j) => (

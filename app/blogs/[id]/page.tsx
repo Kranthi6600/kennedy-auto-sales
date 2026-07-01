@@ -232,7 +232,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
                   <Link href={`/blogs/${rp.slug}`} className="blog-title-link">
                     <h3 className="blog-title">{rp.title}</h3>
                   </Link>
-                  <p className="blog-excerpt">{rp.excerpt || ""}</p>
+                  <p className="blog-excerpt">{stripTags(rp.excerpt || "")}</p>
                   <Link href={`/blogs/${rp.slug}`} className="blog-read-more">Read more →</Link>
                 </div>
               </article>

@@ -6,6 +6,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Pagination from "../../components/Pagination";
 import { fetchBlogs, type BlogItem } from "../../lib/api";
+import { stripTags } from "../../lib/sanitize";
 
 const POSTS_PER_PAGE = 6;
 
@@ -98,7 +99,7 @@ export default function BlogsPage() {
                   <Link href={`/blogs/${post.slug}`} className="blog-title-link">
                     <h3 className="blog-title">{post.title}</h3>
                   </Link>
-                  <p className="blog-excerpt">{post.excerpt || ""}</p>
+                  <p className="blog-excerpt">{stripTags(post.excerpt || "")}</p>
                   {post.read_time && (
                     <span className="blog-read-time">{post.read_time} min read</span>
                   )}
