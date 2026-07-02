@@ -69,7 +69,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <span className="contact-card-label">Address</span>
-                <span className="contact-card-value">1234 Kennedy Road<br />Scarborough, ON M1P 2L5</span>
+                <span className="contact-card-value">1425 Kennedy Rd<br />Kennedy &amp; Ellesmere</span>
               </div>
             </div>
 

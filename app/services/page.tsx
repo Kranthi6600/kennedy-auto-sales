@@ -20,6 +20,11 @@ export default function ServicesPage() {
       .then((res) => {
         if (!cancelled) {
           const list = Array.isArray(res) ? res : (res.services ?? res.data ?? []);
+          list.sort((a, b) => {
+            const da = new Date(a.created_at || 0).getTime();
+            const db = new Date(b.created_at || 0).getTime();
+            return da - db;
+          });
           setServices(list);
           setLoading(false);
         }

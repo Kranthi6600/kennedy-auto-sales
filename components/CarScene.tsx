@@ -12,6 +12,9 @@ gsap.registerPlugin(ScrollTrigger);
 
 const CAR_SCALE = 0.97;
 const FOOTER_SCALE = 0.5;
+const MOBILE_SCALE_FACTOR = 0.8;
+const MOBILE_BREAKPOINT = 600;
+function isMobile(): boolean { return typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT; }
 
 interface SectionConfig {
   x: number;
@@ -20,12 +23,27 @@ interface SectionConfig {
   scale: number;
 }
 
-const SECTIONS: Record<string, SectionConfig> = {
+const DESKTOP_SECTIONS: Record<string, SectionConfig> = {
   hero:   { x: 0.5,   y: -0.45, z: 0,    scale: CAR_SCALE   },
   stats:  { x: 1.8,   y: -0.2,  z: 0.55, scale: CAR_SCALE   },
   how:    { x: -2.2,  y:  0.0,  z: 0,    scale: CAR_SCALE   },
+  map:    { x: 1.3,   y: -0.1,  z: 1.5,  scale: CAR_SCALE * 0.6 },
   footer: { x: 2.5,   y: -1.3,  z: -2.0, scale: FOOTER_SCALE },
 };
+
+const MOBILE_SECTIONS: Record<string, SectionConfig> = {
+  hero:   { x: 0,     y:  0.35, z: 0,    scale: CAR_SCALE   },
+  stats:  { x: 0,     y:  0.15, z: 0.3,  scale: CAR_SCALE * 0.85 },
+  how:    { x: 0,     y:  0.25, z: 0,    scale: CAR_SCALE * 0.85 },
+  map:    { x: 0,     y:  0.2,  z: 0,    scale: CAR_SCALE * 0.85 },
+  footer: { x: 0,     y: -0.5,  z: -1.5, scale: FOOTER_SCALE },
+};
+
+let SECTIONS: Record<string, SectionConfig> = isMobile() ? { ...MOBILE_SECTIONS } : { ...DESKTOP_SECTIONS };
+
+function getSections(): Record<string, SectionConfig> {
+  return isMobile() ? MOBILE_SECTIONS : DESKTOP_SECTIONS;
+}
 
 function lerp(a: number, b: number, t: number): number { return a + (b - a) * t; }
 function easeInOut(t: number): number { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
@@ -44,14 +62,18 @@ export default function CarScene() {
     let momentumRAF: number | null = null;
     const scrollTriggers: ScrollTrigger[] = [];
 
+    SECTIONS = { ...getSections() };
+
     // ─── RENDERER ───────────────────────────────────────────────
+    const cw = canvasEl.clientWidth || window.innerWidth;
+    const ch = canvasEl.clientHeight || window.innerHeight;
     const renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
       antialias: true,
       powerPreference: "high-performance",
     });
-    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(cw, ch);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.64;
@@ -59,7 +81,7 @@ export default function CarScene() {
 
     // ─── SCENE & CAMERA ─────────────────────────────────────────
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(32, window.innerWidth / window.innerHeight, 0.1, 200);
+    const camera = new THREE.PerspectiveCamera(isMobile() ? 42 : 32, cw / ch, 0.1, 200);
     camera.position.set(0, 0, 5.5);
 
     // ─── REFLECTION ENVIRONMENT ─────────────────────────────────
@@ -128,15 +150,9 @@ export default function CarScene() {
     shadowPlane.rotation.x = -Math.PI / 2;
     shadowPlane.position.y = -1.15;
     shadowPlane.renderOrder = -1;
-    scene.add(shadowPlane);
 
     function updateShadow() {
       if (!car) return;
-      shadowPlane.position.x = car.position.x - 0.2;
-      shadowPlane.position.z = car.position.z + 0.1;
-      shadowPlane.position.y = car.position.y - 0.65;
-      const heightFactor = 1 + Math.max(0, -car.position.y) * 0.15;
-      shadowPlane.scale.set(heightFactor, heightFactor, 1);
     }
 
     // ─── CAR STATE ─────────────────────────────────────────────
@@ -165,10 +181,12 @@ export default function CarScene() {
         duration: 1.3, ease: 'expo.out', delay: 0.5,
         onComplete: () => enableDrag()
       });
-      gsap.fromTo(car.position,
-        { y: SECTIONS.hero.y - 0.8 },
-        { y: SECTIONS.hero.y, duration: 1.3, ease: 'expo.out', delay: 0.5 }
-      );
+      if (!isMobile()) {
+        gsap.fromTo(car.position,
+          { y: SECTIONS.hero.y - 0.8 },
+          { y: SECTIONS.hero.y, duration: 1.3, ease: 'expo.out', delay: 0.5 }
+        );
+      }
     }
 
     loader.load('/models/2021_ford_bronco_2-door.glb', (gltf) => {
@@ -189,6 +207,7 @@ export default function CarScene() {
 
       const size = box.getSize(new THREE.Vector3());
       baseScale = 2.4 / Math.max(size.x, size.y, size.z);
+      if (isMobile()) baseScale *= MOBILE_SCALE_FACTOR;
       car.scale.setScalar(baseScale * SECTIONS.hero.scale);
       car.position.set(SECTIONS.hero.x, SECTIONS.hero.y, SECTIONS.hero.z);
 
@@ -269,6 +288,7 @@ export default function CarScene() {
 
     // ─── SCROLL-DRIVEN CAR POSITIONING ─────────────────────────
     function setupScrollCar() {
+      // Hero → Stats
       scrollTriggers.push(
         ScrollTrigger.create({
           trigger: '#stats-section',
@@ -284,14 +304,16 @@ export default function CarScene() {
             car.scale.setScalar(lerp(baseScale * SECTIONS.hero.scale, baseScale * SECTIONS.stats.scale, t));
             if (statsProgress > 0.85 && !statsAligned) {
               statsAligned = true;
-              gsap.to(car.rotation, { x: 0.15, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' });
+              const rotY = isMobile() ? -0.3 : -0.8;
+              gsap.to(car.rotation, { x: 0.15, y: rotY, z: 0, duration: 1.2, ease: 'power2.out' });
             }
           },
-          onEnter: () => { disableDrag(); currentSection = 'stats'; shadowMat.opacity = 0; },
-          onLeaveBack: () => { currentSection = 'hero'; enableDrag(); statsProgress = 0; statsAligned = false; shadowMat.opacity = 1; }
+          onEnter: () => { disableDrag(); currentSection = 'stats'; },
+          onLeaveBack: () => { currentSection = 'hero'; enableDrag(); statsProgress = 0; statsAligned = false; if (car) { const rotY = isMobile() ? 0.3 : 0.8; gsap.to(car.rotation, { x: 0, y: rotY, z: 0, duration: 1.2, ease: 'power2.out' }); } }
         })
       );
 
+      // Stats → How
       scrollTriggers.push(
         ScrollTrigger.create({
           trigger: '#how-section',
@@ -307,37 +329,36 @@ export default function CarScene() {
             car.scale.setScalar(lerp(baseScale * SECTIONS.stats.scale, baseScale * SECTIONS.how.scale, t));
             if (howProgress > 0.85 && !howAligned) {
               howAligned = true;
-              gsap.to(car.rotation, { x: 0.25, y: 0.8, z: 0, duration: 1.2, ease: 'power2.out' });
+              const rotY = isMobile() ? 0.3 : 0.8;
+              gsap.to(car.rotation, { x: 0.25, y: rotY, z: 0, duration: 1.2, ease: 'power2.out' });
             }
           },
           onEnter:     () => { currentSection = 'how'; },
-          onLeaveBack: () => { currentSection = 'stats'; howProgress = 0; howAligned = false; statsAligned = false; if (car) gsap.to(car.rotation, { x: 0.15, y: -0.8, z: 0, duration: 1.2, ease: 'power2.out' }); shadowMat.opacity = 0; }
+          onLeaveBack: () => { currentSection = 'stats'; howProgress = 0; howAligned = false; statsAligned = false; if (car) { const rotY = isMobile() ? -0.3 : -0.8; gsap.to(car.rotation, { x: 0.15, y: rotY, z: 0, duration: 1.2, ease: 'power2.out' }); } }
         })
       );
 
+      // Vanish: How section scrolls away → car disappears
       scrollTriggers.push(
         ScrollTrigger.create({
-          trigger: '#site-footer',
-          start: 'top bottom', end: 'top top', scrub: 2,
+          trigger: '#how-section',
+          start: 'bottom center', end: 'bottom top', scrub: 2,
           onUpdate: (self) => {
             if (!car || isDragging) return;
             const t = self.progress;
-            const ly = lerp(SECTIONS.how.y, SECTIONS.footer.y, easeInOut(t));
-            car.position.x = lerp(SECTIONS.how.x, SECTIONS.footer.x, t);
-            car.position.y = ly;
-            car.position.z = lerp(SECTIONS.how.z, SECTIONS.footer.z, t) + depthOffset(ly);
-            car.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, baseScale * SECTIONS.footer.scale, t));
-            const fadeT = Math.min(1, t / 0.5);
-            const opacity = 1 - easeInOut(fadeT);
-            car.traverse((child: THREE.Object3D) => {
-              if ((child as THREE.Mesh).isMesh) {
-                ((child as THREE.Mesh).material as THREE.Material).opacity = opacity;
-              }
-            });
-            shadowMat.opacity = 0;
+            car.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, 0, easeInOut(t)));
+            car.position.y = lerp(SECTIONS.how.y, SECTIONS.how.y - 3, t);
           },
-          onEnter:     () => { currentSection = 'footer'; },
-          onLeaveBack: () => { currentSection = 'how'; howAligned = false; if (car) car.traverse((child: THREE.Object3D) => { if ((child as THREE.Mesh).isMesh) ((child as THREE.Mesh).material as THREE.Material).opacity = 1; }); }
+          onEnter:     () => { currentSection = 'vanishing'; },
+          onLeaveBack: () => {
+            currentSection = 'how';
+            if (car) {
+              car.scale.setScalar(baseScale * SECTIONS.how.scale);
+              car.position.x = SECTIONS.how.x;
+              car.position.y = SECTIONS.how.y;
+              car.position.z = SECTIONS.how.z;
+            }
+          }
         })
       );
     }
@@ -397,16 +418,29 @@ export default function CarScene() {
 
     // ─── RESIZE ─────────────────────────────────────────────────
     function onResize() {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      const cw = canvasEl.clientWidth || window.innerWidth;
+      const ch = canvasEl.clientHeight || window.innerHeight;
+      camera.aspect = cw / ch;
+      camera.fov = isMobile() ? 42 : 32;
       camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(cw, ch);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      SECTIONS = { ...getSections() };
+      if (car) {
+        const size = new THREE.Box3().setFromObject(car).getSize(new THREE.Vector3());
+        const newBase = 2.4 / Math.max(size.x, size.y, size.z) / (car.scale.x / baseScale);
+        baseScale = isMobile() ? newBase * MOBILE_SCALE_FACTOR : newBase;
+        const sec = SECTIONS[currentSection] ?? SECTIONS.hero;
+        gsap.to(car.position, { x: sec.x, y: sec.y, z: sec.z, duration: 0.5, ease: 'power2.out' });
+        const targetScale = baseScale * sec.scale;
+        gsap.to(car.scale, { x: targetScale, y: targetScale, z: targetScale, duration: 0.4, ease: 'power2.out' });
+      }
     }
     window.addEventListener('resize', onResize);
 
     // ─── RENDER LOOP ────────────────────────────────────────────
     function animate() {
-      if (car && !isDragging) {
+      if (car && !isDragging && !isMobile()) {
         if ((statsProgress < 0.85 || howProgress > 0.15) && howProgress < 0.85) {
           car.rotation.x += autoVel.x;
           car.rotation.y += autoVel.y;
@@ -418,7 +452,7 @@ export default function CarScene() {
     gsap.ticker.add(animate);
 
     function onLoad() {
-      setupScrollCar();
+      if (!isMobile()) setupScrollCar();
       ScrollTrigger.refresh();
     }
     if (document.readyState === 'complete') {

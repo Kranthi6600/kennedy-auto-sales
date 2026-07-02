@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CarSceneLazy from '../components/CarSceneLazy';
+import HomeInventory from '../components/HomeInventory';
 
 export default function Home() {
   return (
@@ -22,20 +23,6 @@ export default function Home() {
       {/* HERO SECTION */}
       <section className="section hero-section" id="hero-section">
         <CarSceneLazy />
-
-        {/* Product Hunt badge */}
-        <div className="ph-badge-wrap" id="ph-badge">
-          <a href="#" target="_blank" className="ph-badge-inner glass-card">
-            <svg width="32" height="32" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="120" cy="120" r="120" fill="#FF6154" />
-              <path fill="#fff" d="M120 60c-33 0-60 27-60 60s27 60 60 60 60-27 60-60-27-60-60-60zm0 100c-22 0-40-18-40-40s18-40 40-40 40 18 40 40-18 40-40 40zm-10-60v40l30 20" />
-            </svg>
-            <div className="ph-badge-text">
-              <span className="ph-label">Best Dealer 2025</span>
-              <span className="ph-sub">Auto Awards</span>
-            </div>
-          </a>
-        </div>
 
         {/* Event card */}
         <div className="event-card" id="event-card">
@@ -72,7 +59,7 @@ export default function Home() {
             </div>
             <div className="ec-venue">
               <span className="venue-name">Kennedy Auto Sales</span>
-              <span className="venue-addr">1200 Kennedy Road,<br />Scarborough, ON M1P 2X1</span>
+              <span className="venue-addr">1425 Kennedy Rd,<br />Kennedy &amp; Ellesmere</span>
             </div>
             <button className="ec-btn ghost-btn">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" /></svg>
@@ -202,6 +189,86 @@ export default function Home() {
               <span className="ph-embed-score">A+</span>
             </div>
           </div>
+        </div>
+      </section>
+
+      <HomeInventory />
+
+      <section className="reviews-section" id="reviews-section">
+        <div className="reviews-header">
+          <span className="section-eyebrow">CUSTOMER REVIEWS</span>
+          <h2 className="reviews-heading">What Our Customers Say</h2>
+          <div className="reviews-rating-summary">
+            <div className="reviews-stars">★★★★★</div>
+            <span className="reviews-rating-text">4.9 / 5 · Based on 327 reviews</span>
+          </div>
+        </div>
+        <div className="reviews-grid">
+          <div className="review-card glass-card">
+            <div className="review-stars">★★★★★</div>
+            <p className="review-text">"Best car buying experience I've ever had. No pressure, honest advice, and they got me financed the same day. Highly recommend Kennedy Auto Sales!"</p>
+            <div className="review-author">
+              <div className="review-avatar">JM</div>
+              <div>
+                <span className="review-name">Jason M.</span>
+                <span className="review-date">2 weeks ago</span>
+              </div>
+            </div>
+          </div>
+          <div className="review-card glass-card">
+            <div className="review-stars">★★★★★</div>
+            <p className="review-text">"Found my dream car at a great price. The team was transparent about everything and the financing process was super smooth. Will definitely come back!"</p>
+            <div className="review-author">
+              <div className="review-avatar">SP</div>
+              <div>
+                <span className="review-name">Sarah P.</span>
+                <span className="review-date">1 month ago</span>
+              </div>
+            </div>
+          </div>
+          <div className="review-card glass-card">
+            <div className="review-stars">★★★★★</div>
+            <p className="review-text">"Traded in my old car and drove away in something newer the same day. Fair trade-in value and no hidden fees. These guys are the real deal."</p>
+            <div className="review-author">
+              <div className="review-avatar">DK</div>
+              <div>
+                <span className="review-name">David K.</span>
+                <span className="review-date">1 month ago</span>
+              </div>
+            </div>
+          </div>
+          <div className="review-card glass-card">
+            <div className="review-stars">★★★★☆</div>
+            <p className="review-text">"Great selection of vehicles and friendly staff. They helped me find exactly what I was looking for within my budget. The home delivery was a nice bonus!"</p>
+            <div className="review-author">
+              <div className="review-avatar">AL</div>
+              <div>
+                <span className="review-name">Amanda L.</span>
+                <span className="review-date">2 months ago</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="map-section" id="map-section">
+        <div className="map-embed">
+          <iframe
+            src="https://www.google.com/maps?q=1425+Kennedy+Rd,+Scarborough,+ON&output=embed"
+            width="100%"
+            height="100%"
+            style={{ border: 0 }}
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="Kennedy Auto Sales Location"
+          />
+        </div>
+        <div className="map-content">
+          <span className="section-eyebrow">VISIT US</span>
+          <h2 className="map-heading">Find Our Showroom</h2>
+          <p className="map-address">1425 Kennedy Rd, Kennedy &amp; Ellesmere</p>
+          <p className="map-hours">Mon–Fri: 9AM–7PM · Sat: 9AM–5PM · Sun: Closed</p>
+          <a href="https://maps.google.com/?q=1425+Kennedy+Rd,+Scarborough,+ON" target="_blank" rel="noopener noreferrer" className="cta-main-btn map-directions-btn">Get Directions →</a>
         </div>
       </section>
 

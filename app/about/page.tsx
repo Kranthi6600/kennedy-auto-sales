@@ -103,7 +103,7 @@ export default function AboutPage() {
 
         <div className="about-cta">
           <h2>Visit Our Showroom</h2>
-          <p>1200 Kennedy Road, Scarborough, ON M1P 2X1</p>
+          <p>1425 Kennedy Rd, Kennedy &amp; Ellesmere</p>
           <p>Mon-Sat 9AM-8PM · Sun 11AM-6PM</p>
           <a href="/" className="cta-main-btn">Back to Home →</a>
         </div>

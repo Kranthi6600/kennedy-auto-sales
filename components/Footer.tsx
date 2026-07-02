@@ -9,6 +9,7 @@ export default function Footer() {
           <div className="footer-brand">
             <div className="footer-logo">Kennedy Auto Sales</div>
             <p className="footer-tagline">Your trusted car dealership in<br />Scarborough, Ontario, Canada.</p>
+            <p className="footer-address">1425 Kennedy Rd, Kennedy &amp; Ellesmere</p>
             <div className="footer-socials">
               <a href="#" className="social-pill glass-pill">𝕏 Twitter</a>
               <a href="#" className="social-pill glass-pill">▶ Instagram</a>

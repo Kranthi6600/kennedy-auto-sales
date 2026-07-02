@@ -24,6 +24,11 @@ export default function BlogsPage() {
       .then((res) => {
         if (!cancelled) {
           const list = Array.isArray(res) ? res : (res.blogs ?? res.data ?? []);
+          list.sort((a, b) => {
+            const da = new Date(a.published_at || a.created_at || 0).getTime();
+            const db = new Date(b.published_at || b.created_at || 0).getTime();
+            return db - da;
+          });
           setBlogs(list);
           setLoading(false);
         }

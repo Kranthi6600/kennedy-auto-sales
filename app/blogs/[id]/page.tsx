@@ -93,6 +93,35 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
     <>
       <Navbar />
 
+      <div className="blog-detail-layout">
+        <aside className="blog-sidebar blog-sidebar-left">
+          <div className="blog-sidebar-card glass-card">
+            <h3 className="blog-sidebar-title">Quick Links</h3>
+            <nav className="blog-toc">
+              <a href="#blog-content" className="blog-toc-link">Article</a>
+              {blog.faqs && blog.faqs.length > 0 && (
+                <a href="#blog-faqs" className="blog-toc-link">FAQs</a>
+              )}
+              {blog.related_services && blog.related_services.length > 0 && (
+                <a href="#blog-related" className="blog-toc-link">Related Services</a>
+              )}
+              <a href="#blog-share" className="blog-toc-link">Share</a>
+            </nav>
+          </div>
+          <div className="blog-sidebar-card glass-card">
+            <h3 className="blog-sidebar-title">Share</h3>
+            <div className="blog-sidebar-share">
+              <button className="blog-sidebar-share-btn" onClick={() => { navigator.clipboard?.writeText(window.location.href); }}>Copy Link</button>
+              <Link href="/blogs" className="blog-sidebar-share-btn">More Articles</Link>
+            </div>
+          </div>
+          <div className="blog-sidebar-card blog-sidebar-cta">
+            <h3>Need Help?</h3>
+            <p>Visit our showroom or call us for expert advice.</p>
+            <Link href="/contact" className="cta-main-btn">Contact Us →</Link>
+          </div>
+        </aside>
+
       <article className="blog-detail">
         <div className="blog-detail-header">
           <Link href="/blogs" className="blog-detail-back">← Back to Blog</Link>
@@ -134,6 +163,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
 
         {blog.content && (
           <div
+            id="blog-content"
             className="blog-detail-content"
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(blog.content) }}
           />
@@ -148,7 +178,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
         )}
 
         {blog.faqs && blog.faqs.length > 0 && (
-          <div className="blog-detail-faqs">
+          <div id="blog-faqs" className="blog-detail-faqs">
             <h2>Frequently Asked Questions</h2>
             <div className="service-faq-list">
               {blog.faqs.map((faq, i) => (
@@ -172,7 +202,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
         )}
 
         {blog.related_services && blog.related_services.length > 0 && (
-          <div className="blog-detail-related-services">
+          <div id="blog-related" className="blog-detail-related-services">
             <h2>Related Services</h2>
             <div className="service-related-grid">
               {blog.related_services.map((svc) => (
@@ -201,7 +231,7 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         )}
 
-        <div className="blog-detail-share">
+        <div id="blog-share" className="blog-detail-share">
           <span className="blog-detail-share-label">Share this article:</span>
           <div className="blog-detail-share-btns">
             <button className="blog-detail-share-btn">Copy Link</button>
@@ -209,6 +239,26 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         </div>
       </article>
+
+        <aside className="blog-sidebar blog-sidebar-right">
+          {otherBlogs.length > 0 && (
+            <div className="blog-sidebar-card glass-card">
+              <h3 className="blog-sidebar-title">More Articles</h3>
+              <div className="blog-sidebar-articles">
+                {otherBlogs.map((rp) => (
+                  <Link key={rp.id} href={`/blogs/${rp.slug}`} className="blog-sidebar-article">
+                    {rp.thumbnail && <img src={rp.thumbnail} alt={rp.thumbnail_alt || rp.title} loading="lazy" />}
+                    <div>
+                      <span className="blog-sidebar-article-date">{formatDate(rp.published_at || rp.created_at)}</span>
+                      <h4>{rp.title}</h4>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </aside>
+      </div>
 
       {otherBlogs.length > 0 && (
         <section className="blog-detail-related">
