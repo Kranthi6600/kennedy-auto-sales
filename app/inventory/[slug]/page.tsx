@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
-import { fetchInventoryBySlug, type InventoryDetailItem } from "../../../lib/api";
+import Seo from "../../../components/Seo";
+import { fetchInventoryBySlug, fetchInventory, type InventoryDetailItem, type InventoryItem } from "../../../lib/api";
 import { sanitizeHtml, stripTags } from "../../../lib/sanitize";
 import { useCompare } from "../../../lib/useCompare";
 
@@ -15,6 +16,7 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
   const [error, setError] = useState<string | null>(null);
   const [activeImg, setActiveImg] = useState(0);
   const [slug, setSlug] = useState<string>("");
+  const [recommended, setRecommended] = useState<InventoryItem[]>([]);
 
   useEffect(() => {
     params.then((p) => setSlug(p.slug));
@@ -38,6 +40,19 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
           setLoading(false);
         }
       });
+    return () => { cancelled = true; };
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    let cancelled = false;
+    fetchInventory({ type: "vehicle", limit: 5, sortBy: "created_at", sortOrder: "desc" })
+      .then((res) => {
+        if (!cancelled) {
+          setRecommended(res.data.filter((v) => v.slug !== slug).slice(0, 4));
+        }
+      })
+      .catch(() => {});
     return () => { cancelled = true; };
   }, [slug]);
 
@@ -132,6 +147,14 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
 
   return (
     <>
+      <Seo
+        title={`${item.title} | Kennedy Auto Sales`}
+        description={stripTags(item.description || item.attributes?.condition || 'View this vehicle at Kennedy Auto Sales.')}
+        ogTitle={item.title}
+        ogDescription={stripTags(item.description || '')}
+        ogImage={item.thumbnail || item.images?.[0]?.url || undefined}
+        canonicalPath={`/inventory/${slug}`}
+      />
       <Navbar />
 
       <section className="subpage-section car-detail-section">
@@ -215,6 +238,38 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
           <div className="car-detail-content glass-card">
             <h3>About This Vehicle</h3>
             <div dangerouslySetInnerHTML={{ __html: sanitizeHtml(item.content) }} />
+          </div>
+        )}
+
+        {recommended.length > 0 && (
+          <div className="car-detail-recommended">
+            <h2 className="car-detail-recommended-title">Recommended from this dealer</h2>
+            <div className="car-detail-recommended-grid">
+              {recommended.map((v) => (
+                <Link key={v.id} href={`/inventory/${v.slug}`} className="inv-card glass-card">
+                  <div className="inv-card-img">
+                    <img
+                      src={v.thumbnail || v.images?.[0]?.url || "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=800&q=80"}
+                      alt={v.thumbnail_alt || v.title}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <span className="inv-tag">{v.attributes?.body_type || "Vehicle"}</span>
+                  </div>
+                  <div className="inv-card-body">
+                    <h3 className="inv-card-title">{v.title}</h3>
+                    <div className="inv-card-specs">
+                      <span>{v.attributes?.year || ""}</span>
+                      <span>{v.attributes?.mileage ? `${parseInt(v.attributes.mileage).toLocaleString()} KM` : "N/A"}</span>
+                      <span>{v.attributes?.fuel_type || "N/A"}</span>
+                    </div>
+                    <span className="inv-card-price">
+                      {v.price_visible ? (v.price_label || (v.price ? new Intl.NumberFormat("en-CA", { style: "currency", currency: v.currency || "CAD", maximumFractionDigits: 0 }).format(v.price) : "Contact for pricing")) : "Contact for pricing"}
+                    </span>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
 

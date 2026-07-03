@@ -1,10 +1,15 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { SITE_URL } from '../lib/site';
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: 'Kennedy Auto Sales — Trusted Car Dealership in Scarborough, Ontario | New & Used Vehicles',
   description: 'Kennedy Auto Sales in Scarborough, Ontario — your trusted dealership for new and certified pre-owned vehicles. Browse inventory, get instant financing, trade-in valuation, and drive home today.',
+  alternates: {
+    canonical: '/',
+  },
 };
 
 export const viewport: Viewport = {

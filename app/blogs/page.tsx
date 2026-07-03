@@ -5,13 +5,16 @@ import Link from "next/link";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Pagination from "../../components/Pagination";
-import { fetchBlogs, type BlogItem } from "../../lib/api";
+import JsonLd from "../../components/JsonLd";
+import Seo from "../../components/Seo";
+import { fetchBlogs, type BlogItem, type BlogListSchema } from "../../lib/api";
 import { stripTags } from "../../lib/sanitize";
 
 const POSTS_PER_PAGE = 6;
 
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState<BlogItem[]>([]);
+  const [schema, setSchema] = useState<BlogListSchema | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,6 +33,7 @@ export default function BlogsPage() {
             return db - da;
           });
           setBlogs(list);
+          setSchema(res.schema ?? null);
           setLoading(false);
         }
       })
@@ -55,6 +59,16 @@ export default function BlogsPage() {
 
   return (
     <>
+      <Seo
+        title="Kennedy Auto Blog — Insights & Guides | Kennedy Auto Sales"
+        description="Expert tips, reviews, and dealership news to help you make informed car decisions."
+        ogTitle="Kennedy Auto Blog — Insights & Guides"
+        ogDescription="Expert tips, reviews, and dealership news to help you make informed car decisions."
+        canonicalPath="/blogs"
+      />
+      <JsonLd schema={schema?.item_list} />
+      <JsonLd schema={schema?.collection_page} />
+
       <Navbar />
 
       <section className="subpage-section">

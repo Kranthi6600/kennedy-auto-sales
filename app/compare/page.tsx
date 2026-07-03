@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import Seo from "../../components/Seo";
 import { useCompare } from "../../lib/useCompare";
 import type { Vehicle } from "../../lib/useCompare";
 
@@ -95,6 +96,13 @@ export default function ComparePage() {
 
   return (
     <>
+      <Seo
+        title="Compare Vehicles | Kennedy Auto Sales"
+        description="Compare up to 4 vehicles side-by-side. See specs, pricing, and features to find the right car for you."
+        ogTitle="Compare Vehicles | Kennedy Auto Sales"
+        ogDescription="Compare up to 4 vehicles side-by-side. See specs, pricing, and features to find the right car for you."
+        canonicalPath="/compare"
+      />
       <Navbar />
 
       <section className="subpage-section">

@@ -333,23 +333,35 @@ export default function CarScene() {
               gsap.to(car.rotation, { x: 0.25, y: rotY, z: 0, duration: 1.2, ease: 'power2.out' });
             }
           },
-          onEnter:     () => { currentSection = 'how'; },
-          onLeaveBack: () => { currentSection = 'stats'; howProgress = 0; howAligned = false; statsAligned = false; if (car) { const rotY = isMobile() ? -0.3 : -0.8; gsap.to(car.rotation, { x: 0.15, y: rotY, z: 0, duration: 1.2, ease: 'power2.out' }); } }
+          onEnter:     () => { disableDrag(); currentSection = 'how'; },
+          onLeaveBack: () => { enableDrag(); currentSection = 'stats'; howProgress = 0; howAligned = false; statsAligned = false; if (car) { const rotY = isMobile() ? -0.3 : -0.8; gsap.to(car.rotation, { x: 0.15, y: rotY, z: 0, duration: 1.2, ease: 'power2.out' }); } }
         })
       );
 
-      // Vanish: How section scrolls away → car disappears
+      // Vanish: How section scrolls away → car moves to center then pops out
       scrollTriggers.push(
         ScrollTrigger.create({
           trigger: '#how-section',
-          start: 'bottom center', end: 'bottom top', scrub: 2,
+          start: 'bottom 95%', end: 'bottom -20%', scrub: 8,
           onUpdate: (self) => {
             if (!car || isDragging) return;
             const t = self.progress;
-            car.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, 0, easeInOut(t)));
-            car.position.y = lerp(SECTIONS.how.y, SECTIONS.how.y - 3, t);
+            if (t < 0.55) {
+              // Phase 1: Move to center (55% of scroll)
+              const ct = t / 0.55;
+              car.position.x = lerp(SECTIONS.how.x, 0, easeInOut(ct));
+              car.position.y = SECTIONS.how.y;
+              car.scale.setScalar(baseScale * SECTIONS.how.scale);
+              car.rotation.y = lerp(isMobile() ? 0.3 : 0.8, 0, easeInOut(ct));
+            } else {
+              // Phase 2: Pop out from center (45% of scroll)
+              const ct = (t - 0.55) / 0.45;
+              car.position.x = 0;
+              car.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, 0, easeInOut(ct)));
+              car.position.y = lerp(SECTIONS.how.y, SECTIONS.how.y - 3, ct);
+            }
           },
-          onEnter:     () => { currentSection = 'vanishing'; },
+          onEnter:     () => { disableDrag(); currentSection = 'vanishing'; },
           onLeaveBack: () => {
             currentSection = 'how';
             if (car) {
@@ -371,12 +383,7 @@ export default function CarScene() {
       .to('.profile-btn', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.2)
       .to('#ph-badge',    { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out'   }, 0.4)
       .to('#event-card',  { opacity: 1, x: 0, duration: 1.1, ease: 'expo.out'   }, 0.55)
-      .to('#hero-text',   { opacity: 1, x: 0, duration: 1.1, ease: 'expo.out'   }, 0.65)
-      .to('#nav-arrow',   { opacity: 1,        duration: 0.5, ease: 'power2.out' }, 1.1)
-      .to('#sig-wrap',    { opacity: 1, y: 0,  duration: 0.4, ease: 'power2.out' }, 1.2)
-      .to('.sp1',         { strokeDashoffset: 0, duration: 1.6, ease: 'power2.inOut' }, 1.2)
-      .to('.sp2',         { strokeDashoffset: 0, duration: 1.0, ease: 'power2.inOut' }, 1.8)
-      .to('.sp3',         { strokeDashoffset: 0, duration: 0.7, ease: 'power2.inOut' }, 2.0);
+      .to('#hero-text',   { opacity: 1, x: 0, duration: 1.1, ease: 'expo.out'   }, 0.65);
 
     scrollTriggers.push(
       ScrollTrigger.create({

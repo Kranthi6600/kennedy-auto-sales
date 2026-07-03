@@ -11,8 +11,11 @@ export default function Navbar() {
 
   useEffect(() => {
     const navEl = document.getElementById("navbar");
+    const headerWrap = document.querySelector(".navbar-header-wrap") as HTMLElement | null;
     const onScroll = () => {
-      if (navEl) navEl.classList.toggle("scrolled", window.scrollY > 80);
+      const scrolled = window.scrollY > 80;
+      if (navEl) navEl.classList.toggle("scrolled", scrolled);
+      if (headerWrap) headerWrap.classList.toggle("scrolled", scrolled);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
@@ -36,30 +39,37 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="navbar" id="navbar">
-        <span className="nav-logo" style={isHome ? undefined : { opacity: 1, transform: "none" }}>Kennedy Auto Sales</span>
-        <div className="nav-links" style={isHome ? undefined : { opacity: 1, transform: "none" }}>
-          <Link href="/" className="nav-link">Home</Link>
-          <Link href="/inventory" className="nav-link">Inventory</Link>
-          <Link href="/services" className="nav-link">Services</Link>
-          <Link href="/blogs" className="nav-link">Blogs</Link>
-          <Link href="/about" className="nav-link">About</Link>
-          <Link href="/contact" className="nav-link">Contact</Link>
-        </div>
-        <button className="profile-btn glass-pill" style={isHome ? undefined : { opacity: 1, transform: "none" }}>
-          <span className="pulse-dot" /> Call Now
-        </button>
-        <button
-          className="nav-hamburger"
-          aria-label="Toggle menu"
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          <span className={`hamburger-line ${menuOpen ? "open" : ""}`} />
-          <span className={`hamburger-line ${menuOpen ? "open" : ""}`} />
-          <span className={`hamburger-line ${menuOpen ? "open" : ""}`} />
-        </button>
-      </nav>
+      <div className="navbar-header-wrap">
+        {isHome && (
+          <div className="top-banner">
+            <span className="top-banner-text">Shop 300,000+ cars to find your best deal</span>
+          </div>
+        )}
+        <nav className="navbar" id="navbar">
+          <span className="nav-logo" style={isHome ? undefined : { opacity: 1, transform: "none" }}>Kennedy Auto Sales</span>
+          <div className="nav-links" style={isHome ? undefined : { opacity: 1, transform: "none" }}>
+            <Link href="/" className="nav-link">Home</Link>
+            <Link href="/inventory" className="nav-link">Inventory <span className="nav-blink-dot" /></Link>
+            <Link href="/services" className="nav-link">Services</Link>
+            <Link href="/blogs" className="nav-link">Blogs</Link>
+            <Link href="/about" className="nav-link">About</Link>
+            <Link href="/contact" className="nav-link">Contact</Link>
+          </div>
+          <button className="profile-btn glass-pill" style={isHome ? undefined : { opacity: 1, transform: "none" }}>
+            <span className="pulse-dot" /> Call Now
+          </button>
+          <button
+            className="nav-hamburger"
+            aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
+            <span className={`hamburger-line ${menuOpen ? "open" : ""}`} />
+            <span className={`hamburger-line ${menuOpen ? "open" : ""}`} />
+            <span className={`hamburger-line ${menuOpen ? "open" : ""}`} />
+          </button>
+        </nav>
+      </div>
 
       <div className={`mobile-menu-overlay ${menuOpen ? "open" : ""}`} onClick={() => setMenuOpen(false)} />
 

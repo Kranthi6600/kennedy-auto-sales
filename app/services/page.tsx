@@ -4,11 +4,14 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import { fetchServices, type ServiceItem } from "../../lib/api";
+import JsonLd from "../../components/JsonLd";
+import Seo from "../../components/Seo";
+import { fetchServices, type ServiceItem, type ServiceListSchema } from "../../lib/api";
 import { stripTags } from "../../lib/sanitize";
 
 export default function ServicesPage() {
   const [services, setServices] = useState<ServiceItem[]>([]);
+  const [schema, setSchema] = useState<ServiceListSchema | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -26,6 +29,7 @@ export default function ServicesPage() {
             return da - db;
           });
           setServices(list);
+          setSchema(res.schema ?? null);
           setLoading(false);
         }
       })
@@ -40,6 +44,16 @@ export default function ServicesPage() {
 
   return (
     <>
+      <Seo
+        title="Our Services | Kennedy Auto Sales"
+        description="Everything you need to find, finance, and maintain your next vehicle — all under one roof."
+        ogTitle="Our Services | Kennedy Auto Sales"
+        ogDescription="Everything you need to find, finance, and maintain your next vehicle — all under one roof."
+        canonicalPath="/services"
+      />
+      <JsonLd schema={schema?.item_list} />
+      <JsonLd schema={schema?.collection_page} />
+
       <Navbar />
 
       <section className="subpage-section">

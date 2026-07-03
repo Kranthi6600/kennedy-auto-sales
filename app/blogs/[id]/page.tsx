@@ -4,16 +4,23 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
-import { fetchBlogBySlug, fetchBlogs, type BlogDetailItem, type BlogItem } from "../../../lib/api";
+import JsonLd from "../../../components/JsonLd";
+import Seo from "../../../components/Seo";
+import { fetchBlogBySlug, fetchBlogs, likeBlog, type BlogDetailItem, type BlogItem } from "../../../lib/api";
 import { sanitizeHtml, stripTags } from "../../../lib/sanitize";
 
 export default function BlogDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [slug, setSlug] = useState<string>("");
   const [blog, setBlog] = useState<BlogDetailItem | null>(null);
+  const [blogSchema, setBlogSchema] = useState<object | null>(null);
+  const [breadcrumbSchema, setBreadcrumbSchema] = useState<object | null>(null);
   const [otherBlogs, setOtherBlogs] = useState<BlogItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(0);
+  const [liking, setLiking] = useState(false);
 
   useEffect(() => {
     params.then((p) => setSlug(p.id));
@@ -27,7 +34,11 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
     fetchBlogBySlug(slug)
       .then((res) => {
         if (!cancelled) {
-          setBlog(res.blog ?? res.data ?? res);
+          const blogData = res.blog ?? res.data ?? res;
+          setBlog(blogData);
+          setBlogSchema(res.blog_schema ?? blogData.blog_schema ?? null);
+          setBreadcrumbSchema(res.breadcrumb_schema ?? blogData.breadcrumb_schema ?? null);
+          setLikeCount(blogData.likes ?? 0);
           setLoading(false);
         }
       })
@@ -89,8 +100,39 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
     );
   }
 
+  const handleLike = async () => {
+    if (liked || liking || !blog) return;
+    setLiking(true);
+    try {
+      const res = await likeBlog(slug);
+      setLiked(true);
+      setLikeCount(res.likes ?? likeCount + 1);
+    } catch {
+    } finally {
+      setLiking(false);
+    }
+  };
+
   return (
     <>
+      <Seo
+        title={blog.meta_title || blog.title}
+        description={blog.meta_description || blog.excerpt}
+        keywords={blog.meta_keywords}
+        ogTitle={blog.open_graph_title || blog.title}
+        ogDescription={blog.open_graph_description || blog.excerpt}
+        ogImage={blog.open_graph_image || blog.thumbnail}
+        twitterTitle={blog.twitter_title || blog.title}
+        twitterDescription={blog.twitter_description || blog.excerpt}
+        twitterImage={blog.twitter_image || blog.thumbnail}
+        canonicalUrl={blog.canonical_url || undefined}
+        canonicalPath={`/blogs/${slug}`}
+        robotsMeta={blog.robots_meta}
+      />
+      <JsonLd schema={blogSchema} />
+      <JsonLd schema={breadcrumbSchema} />
+      <JsonLd schema={blog.faq_schema} />
+
       <Navbar />
 
       <div className="blog-detail-layout">
@@ -140,6 +182,22 @@ export default function BlogDetailPage({ params }: { params: Promise<{ id: strin
               )}
               <span className="blog-detail-dot">·</span>
               <span>{blog.views} views</span>
+              <span className="blog-detail-dot">·</span>
+              <button
+                className={`blog-like-btn ${liked ? 'liked' : ''}`}
+                onClick={handleLike}
+                disabled={liked || liking}
+              >
+                {liked ? (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none">
+                    <path d="M12 21s-6.5-4.35-9.5-8.5C.5 9 2 5 5.5 5c2 0 3.5 1.5 4.5 3 1-1.5 2.5-3 4.5-3C18 5 19.5 9 17.5 12.5 14.5 16.65 12 21 12 21z" />
+                  </svg>
+                ) : (
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                  </svg>
+                )} {likeCount}
+              </button>
             </div>
           </div>
         </div>

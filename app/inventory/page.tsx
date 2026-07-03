@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Dropdown from '../../components/Dropdown';
+import Seo from '../../components/Seo';
 import { useCompare, type Vehicle } from '../../lib/useCompare';
 import { fetchInventory } from '../../lib/api';
 import Pagination from '../../components/Pagination';
@@ -50,8 +51,8 @@ const defaultFilters: FilterState = {
   featured: false,
 };
 
-function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(true);
+function FilterSection({ title, children, defaultOpen = true }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
   return (
     <div className="filter-section">
       <button className="filter-section-header" onClick={() => setOpen(!open)}>
@@ -80,6 +81,15 @@ export default function InventoryPage() {
   const [allVehicles, setAllVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mobileFiltersOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => { document.body.style.overflow = ''; };
+  }, [mobileFiltersOpen]);
   const [searchInput, setSearchInput] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -276,7 +286,7 @@ export default function InventoryPage() {
         ))}
       </FilterSection>
 
-      <FilterSection title="Transmission">
+      <FilterSection title="Transmission" defaultOpen={false}>
         {uniqueValues.transmissions.map((t) => (
           <CheckboxFilter
             key={t}
@@ -287,7 +297,7 @@ export default function InventoryPage() {
         ))}
       </FilterSection>
 
-      <FilterSection title="Drivetrain">
+      <FilterSection title="Drivetrain" defaultOpen={false}>
         {uniqueValues.drivetrains.map((p) => (
           <CheckboxFilter
             key={p}
@@ -298,7 +308,7 @@ export default function InventoryPage() {
         ))}
       </FilterSection>
 
-      <FilterSection title="Ext. Colors">
+      <FilterSection title="Ext. Colors" defaultOpen={false}>
         {uniqueValues.colors.map((c) => (
           <CheckboxFilter
             key={c}
@@ -320,7 +330,7 @@ export default function InventoryPage() {
         ))}
       </FilterSection>
 
-      <FilterSection title="Doors">
+      <FilterSection title="Doors" defaultOpen={false}>
         {uniqueValues.doors.map((d) => (
           <CheckboxFilter
             key={d}
@@ -331,7 +341,7 @@ export default function InventoryPage() {
         ))}
       </FilterSection>
 
-      <FilterSection title="Seats">
+      <FilterSection title="Seats" defaultOpen={false}>
         {uniqueValues.seats.map((s) => (
           <CheckboxFilter
             key={s}
@@ -342,7 +352,7 @@ export default function InventoryPage() {
         ))}
       </FilterSection>
 
-      <FilterSection title="Condition">
+      <FilterSection title="Condition" defaultOpen={false}>
         {uniqueValues.conditions.map((c) => (
           <CheckboxFilter
             key={c}
@@ -353,7 +363,7 @@ export default function InventoryPage() {
         ))}
       </FilterSection>
 
-      <FilterSection title="Options">
+      <FilterSection title="Options" defaultOpen={false}>
         <CheckboxFilter
           label="Featured Only"
           checked={filters.featured}
@@ -365,6 +375,13 @@ export default function InventoryPage() {
 
   return (
     <>
+      <Seo
+        title="Browse Our Vehicle Inventory | Kennedy Auto Sales"
+        description="Explore our full range of new and certified pre-owned vehicles. Filter by make, body type, price, fuel type, and more to find your perfect car."
+        ogTitle="Browse Our Vehicle Inventory | Kennedy Auto Sales"
+        ogDescription="Explore our full range of new and certified pre-owned vehicles. Filter by make, body type, price, fuel type, and more to find your perfect car."
+        canonicalPath="/inventory"
+      />
       <Navbar />
 
       <section className="subpage-section inv-page-section">
@@ -410,8 +427,22 @@ export default function InventoryPage() {
               </div>
 
               {mobileFiltersOpen && (
-                <div className="inv-mobile-filters">
-                  {sidebar}
+                <div className="inv-mobile-filters-overlay" onClick={() => setMobileFiltersOpen(false)}>
+                  <div className="inv-mobile-filters" onClick={(e) => e.stopPropagation()}>
+                    <div className="inv-mobile-filters-header">
+                      <h3>Filters</h3>
+                      <button className="inv-mobile-filters-close" onClick={() => setMobileFiltersOpen(false)}>✕</button>
+                    </div>
+                    <div className="inv-mobile-filters-body">
+                      {sidebar}
+                    </div>
+                    <div className="inv-mobile-filters-footer">
+                      <button className="inv-mobile-filters-clear" onClick={clearAllFilters}>Clear All</button>
+                      <button className="inv-mobile-filters-apply" onClick={() => setMobileFiltersOpen(false)}>
+                        Show {filtered.length} Vehicles
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
 

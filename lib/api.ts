@@ -166,17 +166,27 @@ export interface ServiceDetailItem extends ServiceItem {
     display_order: number;
   }[];
   faq_schema: object | null;
+  service_schema: object | null;
+  breadcrumb_schema: object | null;
+}
+
+export interface ServiceListSchema {
+  item_list: object | null;
+  collection_page: object | null;
 }
 
 export interface ServiceListResponse {
   data: ServiceItem[];
   services: ServiceItem[];
   pagination: Pagination;
+  schema: ServiceListSchema | null;
 }
 
 export interface ServiceDetailResponse {
   data: ServiceDetailItem;
   service: ServiceDetailItem;
+  service_schema: object | null;
+  breadcrumb_schema: object | null;
 }
 
 export async function fetchServices(params?: {
@@ -213,7 +223,39 @@ export async function fetchServiceBySlug(slug: string): Promise<ServiceDetailRes
   return res.json();
 }
 
+export interface ServiceCategory {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export async function fetchServiceCategories(): Promise<ServiceCategory[]> {
+  const res = await fetch(`${API_BASE}/services/categories`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) throw new Error(`Service categories API error: ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.data ?? data.categories ?? []);
+}
+
+export async function fetchServiceFaqs(slug: string): Promise<{
+  faqs: { id: string; question: string; answer: string; display_order: number }[];
+  faq_schema: object | null;
+}> {
+  const res = await fetch(`${API_BASE}/services/${slug}/faqs`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) throw new Error(`Service FAQs API error: ${res.status}`);
+  return res.json();
+}
+
 // ─── BLOGS ──────────────────────────────────────────────────
+
+export interface BlogCategory {
+  id: string;
+  name: string;
+  slug?: string;
+}
 
 export interface BlogItem {
   id: string;
@@ -275,17 +317,27 @@ export interface BlogDetailItem extends BlogItem {
     display_order: number;
   }[];
   faq_schema: object | null;
+  blog_schema: object | null;
+  breadcrumb_schema: object | null;
+}
+
+export interface BlogListSchema {
+  item_list: object | null;
+  collection_page: object | null;
 }
 
 export interface BlogListResponse {
   data: BlogItem[];
   blogs: BlogItem[];
   pagination: Pagination;
+  schema: BlogListSchema | null;
 }
 
 export interface BlogDetailResponse {
   data: BlogDetailItem;
   blog: BlogDetailItem;
+  blog_schema: object | null;
+  breadcrumb_schema: object | null;
 }
 
 export async function fetchBlogs(params?: {
@@ -319,5 +371,34 @@ export async function fetchBlogBySlug(slug: string): Promise<BlogDetailResponse>
     { next: { revalidate: 60 } }
   );
   if (!res.ok) throw new Error(`Blog API error: ${res.status}`);
+  return res.json();
+}
+
+export async function fetchBlogCategories(): Promise<BlogCategory[]> {
+  const res = await fetch(`${API_BASE}/blogs/categories`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) throw new Error(`Blog categories API error: ${res.status}`);
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.data ?? data.categories ?? []);
+}
+
+export async function fetchBlogFaqs(slug: string): Promise<{
+  faqs: { id: string; question: string; answer: string; display_order: number }[];
+  faq_schema: object | null;
+}> {
+  const res = await fetch(`${API_BASE}/blogs/${slug}/faqs`, {
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) throw new Error(`Blog FAQs API error: ${res.status}`);
+  return res.json();
+}
+
+export async function likeBlog(slug: string): Promise<{ likes: number; liked: boolean }> {
+  const res = await fetch(`${API_BASE}/blogs/${slug}/like`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) throw new Error(`Blog like API error: ${res.status}`);
   return res.json();
 }

@@ -19,6 +19,9 @@ const ContactForm = dynamic(() => import('../../components/ContactForm'), {
 export const metadata: Metadata = {
   title: 'Contact — Kennedy Auto Sales',
   description: 'Get in touch with Kennedy Auto Sales in Scarborough, Ontario. Visit our showroom, call, or send us a message.',
+  alternates: {
+    canonical: '/contact',
+  },
 };
 
 export default function ContactPage() {

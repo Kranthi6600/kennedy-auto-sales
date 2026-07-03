@@ -5,6 +5,9 @@ import Footer from '../../components/Footer';
 export const metadata: Metadata = {
   title: 'About — Kennedy Auto Sales',
   description: 'Learn about Kennedy Auto Sales — your trusted car dealership in Scarborough, Ontario serving the GTA since 2015.',
+  alternates: {
+    canonical: '/about',
+  },
 };
 
 interface Stat {

@@ -4,12 +4,16 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
+import JsonLd from "../../../components/JsonLd";
+import Seo from "../../../components/Seo";
 import { fetchServiceBySlug, fetchServices, type ServiceDetailItem, type ServiceItem } from "../../../lib/api";
 import { sanitizeHtml, stripTags } from "../../../lib/sanitize";
 
 export default function ServiceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const [slug, setSlug] = useState<string>("");
   const [service, setService] = useState<ServiceDetailItem | null>(null);
+  const [serviceSchema, setServiceSchema] = useState<object | null>(null);
+  const [breadcrumbSchema, setBreadcrumbSchema] = useState<object | null>(null);
   const [otherServices, setOtherServices] = useState<ServiceItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,7 +31,10 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ slug: 
     fetchServiceBySlug(slug)
       .then((res) => {
         if (!cancelled) {
-          setService(res.service ?? res.data ?? res);
+          const svc = res.service ?? res.data ?? res;
+          setService(svc);
+          setServiceSchema(res.service_schema ?? svc.service_schema ?? null);
+          setBreadcrumbSchema(res.breadcrumb_schema ?? svc.breadcrumb_schema ?? null);
           setLoading(false);
         }
       })
@@ -86,6 +93,24 @@ export default function ServiceDetailPage({ params }: { params: Promise<{ slug: 
 
   return (
     <>
+      <Seo
+        title={service.meta_title || service.title}
+        description={service.meta_description || service.description}
+        keywords={service.meta_keywords}
+        ogTitle={service.open_graph_title || service.title}
+        ogDescription={service.open_graph_description || service.description}
+        ogImage={service.open_graph_image || service.thumbnail}
+        twitterTitle={service.twitter_title || service.title}
+        twitterDescription={service.twitter_description || service.description}
+        twitterImage={service.twitter_image || service.thumbnail}
+        canonicalUrl={service.canonical_url || undefined}
+        canonicalPath={`/services/${slug}`}
+        robotsMeta={service.robots_meta}
+      />
+      <JsonLd schema={serviceSchema} />
+      <JsonLd schema={breadcrumbSchema} />
+      <JsonLd schema={service.faq_schema} />
+
       <Navbar />
 
       <section className="subpage-section service-detail-section">
