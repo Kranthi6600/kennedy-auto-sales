@@ -10,11 +10,19 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
+declare global {
+  interface Window {
+    __mobileDragOn?: boolean;
+  }
+}
+
 const CAR_SCALE = 0.97;
 const FOOTER_SCALE = 0.5;
 const MOBILE_SCALE_FACTOR = 0.8;
 const MOBILE_BREAKPOINT = 600;
+const TOUCH_BREAKPOINT = 900;
 function isMobile(): boolean { return typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT; }
+function isTouchDevice(): boolean { return typeof window !== 'undefined' && window.innerWidth <= TOUCH_BREAKPOINT; }
 
 interface SectionConfig {
   x: number;
@@ -179,7 +187,7 @@ export default function CarScene() {
       gsap.to(car.scale, {
         x: targetS, y: targetS, z: targetS,
         duration: 1.3, ease: 'expo.out', delay: 0.5,
-        onComplete: () => enableDrag()
+        onComplete: () => { if (!isTouchDevice()) enableDrag(); }
       });
       if (!isMobile()) {
         gsap.fromTo(car.position,
@@ -238,6 +246,7 @@ export default function CarScene() {
 
     function onDragStart(e: MouseEvent | TouchEvent) {
       if (!carLoaded || currentSection !== "hero") return;
+      if (isTouchDevice() && !window.__mobileDragOn) return;
       isDragging = true;
       prevMouse = getPos(e);
       velocity = { x: 0, y: 0 };

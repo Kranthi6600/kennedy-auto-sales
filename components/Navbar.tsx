@@ -15,12 +15,12 @@ export default function Navbar() {
     const onScroll = () => {
       const scrolled = window.scrollY > 80;
       if (navEl) navEl.classList.toggle("scrolled", scrolled);
-      if (headerWrap) headerWrap.classList.toggle("scrolled", scrolled);
+      if (headerWrap && isHome) headerWrap.classList.toggle("scrolled", scrolled);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+  }, [isHome]);
 
   useEffect(() => {
     setMenuOpen(false);

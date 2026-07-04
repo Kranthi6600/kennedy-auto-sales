@@ -1,7 +1,9 @@
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CarSceneLazy from '../components/CarSceneLazy';
+import MobileDragToggle from '../components/MobileDragToggle';
 import HomeInventory from '../components/HomeInventory';
+import HomeBlogs from '../components/HomeBlogs';
 import HeroPricing from '../components/HeroPricing';
 import EventCard from '../components/EventCard';
 
@@ -46,6 +48,7 @@ export default function Home() {
           <span>scroll</span>
         </div>
         <div className="drag-hint">↔ drag to rotate</div>
+        <MobileDragToggle />
       </section>
 
       {/* SECTION 2 — STATS */}
@@ -131,6 +134,7 @@ export default function Home() {
       </section>
 
       <HomeInventory />
+      <HomeBlogs />
 
       <section className="reviews-section" id="reviews-section">
         <div className="reviews-header">
