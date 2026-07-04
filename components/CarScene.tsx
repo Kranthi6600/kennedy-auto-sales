@@ -179,7 +179,7 @@ export default function CarScene() {
       gsap.to(car.scale, {
         x: targetS, y: targetS, z: targetS,
         duration: 1.3, ease: 'expo.out', delay: 0.5,
-        onComplete: () => { enableDrag(); }
+        onComplete: () => { if (!isMobile()) enableDrag(); }
       });
       if (!isMobile()) {
         gsap.fromTo(car.position,
@@ -241,21 +241,19 @@ export default function CarScene() {
     function enableDrag()  { canvasEl.classList.add('drag-enabled'); }
     function disableDrag() { canvasEl.classList.remove('drag-enabled'); }
 
-    function getPos(e: MouseEvent | TouchEvent): Vec2 {
-      if ('touches' in e && e.touches.length) return { x: e.touches[0].clientX, y: e.touches[0].clientY };
-      return { x: (e as MouseEvent).clientX, y: (e as MouseEvent).clientY };
+    function getPos(e: MouseEvent): Vec2 {
+      return { x: e.clientX, y: e.clientY };
     }
 
-    function onDragStart(e: MouseEvent | TouchEvent) {
+    function onDragStart(e: MouseEvent) {
       if (!carLoaded || currentSection !== "hero") return;
       isDragging = true;
       prevMouse = getPos(e);
       velocity = { x: 0, y: 0 };
       if (momentumRAF) cancelAnimationFrame(momentumRAF);
     }
-    function onDragMove(e: MouseEvent | TouchEvent) {
+    function onDragMove(e: MouseEvent) {
       if (!isDragging || !car) return;
-      if (e.cancelable) e.preventDefault();
       const pos = getPos(e);
       velocity.x = (pos.y - prevMouse.y) * 0.006;
       velocity.y = (pos.x - prevMouse.x) * 0.006;
@@ -292,9 +290,6 @@ export default function CarScene() {
     canvasEl.addEventListener('mousedown', onDragStart);
     window.addEventListener('mousemove', onDragMove);
     window.addEventListener('mouseup', onDragEnd);
-    canvasEl.addEventListener('touchstart', onDragStart, { passive: false });
-    window.addEventListener('touchmove', onDragMove, { passive: false });
-    window.addEventListener('touchend', onDragEnd);
 
     // ─── SCROLL-DRIVEN CAR POSITIONING ─────────────────────────
     function setupScrollCar() {
@@ -462,19 +457,10 @@ export default function CarScene() {
     window.addEventListener('resize', onResize);
 
     // ─── RENDER LOOP ────────────────────────────────────────────
-    let mobileAutoRotate = true;
-    const rotateBtn = document.getElementById('car-rotate-btn');
-    if (rotateBtn) {
-      rotateBtn.addEventListener('click', () => {
-        mobileAutoRotate = !mobileAutoRotate;
-        rotateBtn.classList.toggle('active', mobileAutoRotate);
-      });
-    }
-
     function animate() {
       if (car && !isDragging) {
         if (isMobile()) {
-          if (currentSection === 'hero' && mobileAutoRotate) {
+          if (currentSection === 'hero') {
             car.rotation.y += 0.004;
           }
         } else {
@@ -506,13 +492,10 @@ export default function CarScene() {
       if (momentumRAF) cancelAnimationFrame(momentumRAF);
       window.removeEventListener('mousemove', onDragMove);
       window.removeEventListener('mouseup', onDragEnd);
-      window.removeEventListener('touchmove', onDragMove);
-      window.removeEventListener('touchend', onDragEnd);
       window.removeEventListener('scroll', onScroll);
       window.removeEventListener('resize', onResize);
       window.removeEventListener('load', onLoad);
       canvasEl.removeEventListener('mousedown', onDragStart);
-      canvasEl.removeEventListener('touchstart', onDragStart);
       if (eventCardEl) {
         eventCardEl.removeEventListener('mouseenter', onCardEnter);
         eventCardEl.removeEventListener('mouseleave', onCardLeave);
@@ -530,13 +513,6 @@ export default function CarScene() {
   return (
     <div className="car-canvas-wrapper">
       <canvas id="hero-canvas" ref={canvasRef} />
-      <button id="car-rotate-btn" className="car-rotate-btn active" aria-label="Toggle auto-rotate">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
-          <path d="M21 3v5h-5" />
-        </svg>
-        <span>Rotate</span>
-      </button>
     </div>
   );
 }

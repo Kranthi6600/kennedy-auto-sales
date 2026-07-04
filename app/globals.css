@@ -196,7 +196,7 @@ body {
 #hero-canvas.drag-enabled { pointer-events: all; cursor: grab; }
 #hero-canvas.drag-enabled:active { cursor: grabbing; }
 
-/* Canvas wrapper for rotate button positioning */
+/* Canvas wrapper */
 .car-canvas-wrapper {
   position: fixed;
   top: 0; left: 0;
@@ -210,11 +210,6 @@ body {
   height: 100%;
 }
 
-/* Car rotate button (mobile only) */
-.car-rotate-btn {
-  display: none;
-}
-
 /* Cursor label shown over car in hero */
 .drag-hint {
   position: absolute; bottom: 5.5rem; left: 50%; transform: translateX(-50%);
@@ -222,11 +217,6 @@ body {
   text-transform: uppercase; color: var(--ink-faint);
   opacity: 0; animation: fadeInUp 0.6s var(--ease-out) 2.5s forwards;
   z-index: 10; pointer-events: none;
-}
-
-/* Mobile drag toggle button (hidden on desktop) */
-.mobile-drag-toggle {
-  display: none;
 }
 
 /* =============================================
@@ -2160,46 +2150,12 @@ body {
   .nav-hamburger { display: flex; }
   .site-footer { padding: 5rem 1.5rem 1rem; min-height: auto; }
 
-  /* Car rotate button */
-  .car-rotate-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    position: fixed;
-    bottom: 7rem;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 100;
-    padding: 0.5rem 0.9rem;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 999px;
-    background: rgba(20, 20, 25, 0.7);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    color: #fff;
-    font-size: 0.68rem;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: background 0.25s, opacity 0.3s ease, transform 0.3s ease;
-    pointer-events: all;
-  }
-  .car-rotate-btn:active {
-    background: rgba(40, 40, 50, 0.85);
-  }
-  .car-rotate-btn svg {
-    width: 0.95rem;
-    height: 0.95rem;
-    transition: transform 0.3s var(--ease-out);
-  }
-  .car-rotate-btn.active svg {
-    animation: rotateSpin 3s linear infinite;
-  }
-  @keyframes rotateSpin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+  /* Canvas: absolute on mobile/tablet so it scrolls with page */
+  .car-canvas-wrapper {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100vh;
   }
 }
 
