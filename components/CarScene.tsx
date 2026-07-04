@@ -456,10 +456,16 @@ export default function CarScene() {
 
     // ─── RENDER LOOP ────────────────────────────────────────────
     function animate() {
-      if (car && !isDragging && !isMobile()) {
-        if ((statsProgress < 0.85 || howProgress > 0.15) && howProgress < 0.85) {
-          car.rotation.x += autoVel.x;
-          car.rotation.y += autoVel.y;
+      if (car && !isDragging) {
+        if (isTouchDevice()) {
+          if (currentSection === 'hero' && !window.__mobileDragOn) {
+            car.rotation.y += 0.004;
+          }
+        } else if (!isMobile()) {
+          if ((statsProgress < 0.85 || howProgress > 0.15) && howProgress < 0.85) {
+            car.rotation.x += autoVel.x;
+            car.rotation.y += autoVel.y;
+          }
         }
       }
       updateShadow();
