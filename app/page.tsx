@@ -1,9 +1,12 @@
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CarSceneLazy from '../components/CarSceneLazy';
-import MobileDragToggle from '../components/MobileDragToggle';
 import HomeInventory from '../components/HomeInventory';
 import HomeBlogs from '../components/HomeBlogs';
+import BrandShowcase from '../components/BrandShowcase';
+import FinanceCalculator from '../components/FinanceCalculator';
+import BuyingJourneyTimeline from '../components/BuyingJourneyTimeline';
+import TradeInEstimator from '../components/TradeInEstimator';
 import HeroPricing from '../components/HeroPricing';
 import EventCard from '../components/EventCard';
 
@@ -48,7 +51,6 @@ export default function Home() {
           <span>scroll</span>
         </div>
         <div className="drag-hint">↔ drag to rotate</div>
-        <MobileDragToggle />
       </section>
 
       {/* SECTION 2 — STATS */}
@@ -133,8 +135,12 @@ export default function Home() {
         </div>
       </section>
 
+      <BrandShowcase />
       <HomeInventory />
+      <FinanceCalculator />
       <HomeBlogs />
+      <TradeInEstimator />
+      <BuyingJourneyTimeline />
 
       <section className="reviews-section" id="reviews-section">
         <div className="reviews-header">
@@ -208,8 +214,49 @@ export default function Home() {
         <div className="map-content">
           <span className="section-eyebrow">VISIT US</span>
           <h2 className="map-heading">Find Our Showroom</h2>
-          <p className="map-address">1425 Kennedy Rd, Kennedy &amp; Ellesmere</p>
-          <p className="map-hours">Mon–Fri: 9AM–7PM · Sat: 9AM–5PM · Sun: Closed</p>
+          <div className="map-info-card glass-card">
+            <div className="map-info-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="map-info-icon">
+                <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" />
+              </svg>
+              <div>
+                <span className="map-info-label">Address</span>
+                <span className="map-info-value">1425 Kennedy Rd<br />Kennedy &amp; Ellesmere, Scarborough, ON</span>
+              </div>
+            </div>
+            <div className="map-info-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="map-info-icon">
+                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z" />
+              </svg>
+              <div>
+                <span className="map-info-label">Phone</span>
+                <a href="tel:+14165550199" className="map-info-value map-info-link">(416) 555-0199</a>
+              </div>
+            </div>
+            <div className="map-info-row">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="map-info-icon">
+                <rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+              </svg>
+              <div>
+                <span className="map-info-label">Email</span>
+                <a href="mailto:info@kennedyautosales.ca" className="map-info-value map-info-link">info@kennedyautosales.ca</a>
+              </div>
+            </div>
+          </div>
+          <div className="map-hours-card glass-card">
+            <div className="map-hours-header">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="map-info-icon">
+                <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+              </svg>
+              <span className="map-hours-title">Business Hours</span>
+              <span className="map-hours-status">Open Now</span>
+            </div>
+            <div className="map-hours-list">
+              <div className="map-hours-row"><span>Mon – Fri</span><span>9:00 AM – 7:00 PM</span></div>
+              <div className="map-hours-row"><span>Saturday</span><span>9:00 AM – 5:00 PM</span></div>
+              <div className="map-hours-row closed"><span>Sunday</span><span>Closed</span></div>
+            </div>
+          </div>
           <a href="https://maps.google.com/?q=1425+Kennedy+Rd,+Scarborough,+ON" target="_blank" rel="noopener noreferrer" className="cta-main-btn map-directions-btn">Get Directions →</a>
         </div>
       </section>

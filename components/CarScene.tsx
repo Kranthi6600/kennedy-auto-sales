@@ -10,19 +10,11 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 gsap.registerPlugin(ScrollTrigger);
 
-declare global {
-  interface Window {
-    __mobileDragOn?: boolean;
-  }
-}
-
 const CAR_SCALE = 0.97;
 const FOOTER_SCALE = 0.5;
 const MOBILE_SCALE_FACTOR = 0.8;
 const MOBILE_BREAKPOINT = 600;
-const TOUCH_BREAKPOINT = 900;
 function isMobile(): boolean { return typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT; }
-function isTouchDevice(): boolean { return typeof window !== 'undefined' && window.innerWidth <= TOUCH_BREAKPOINT; }
 
 interface SectionConfig {
   x: number;
@@ -187,7 +179,7 @@ export default function CarScene() {
       gsap.to(car.scale, {
         x: targetS, y: targetS, z: targetS,
         duration: 1.3, ease: 'expo.out', delay: 0.5,
-        onComplete: () => { if (!isTouchDevice()) enableDrag(); }
+        onComplete: () => { enableDrag(); }
       });
       if (!isMobile()) {
         gsap.fromTo(car.position,
@@ -221,8 +213,18 @@ export default function CarScene() {
 
       scene.add(car);
       carLoaded = true;
-      carEntrance();
-      ScrollTrigger.refresh();
+
+      const statsEl = document.getElementById('stats-section');
+      const isPastHero = statsEl && statsEl.getBoundingClientRect().top < window.innerHeight;
+
+      if (isPastHero) {
+        car.scale.setScalar(0);
+        ScrollTrigger.refresh();
+        ScrollTrigger.update();
+      } else {
+        carEntrance();
+        ScrollTrigger.refresh();
+      }
     }, undefined, (err: unknown) => console.error('GLB Error:', err));
 
     // ─── DRAG PHYSICS ───────────────────────────────────────────
@@ -246,7 +248,6 @@ export default function CarScene() {
 
     function onDragStart(e: MouseEvent | TouchEvent) {
       if (!carLoaded || currentSection !== "hero") return;
-      if (isTouchDevice() && !window.__mobileDragOn) return;
       isDragging = true;
       prevMouse = getPos(e);
       velocity = { x: 0, y: 0 };
@@ -347,7 +348,7 @@ export default function CarScene() {
         })
       );
 
-      // Vanish: How section scrolls away → car moves to center then pops out
+      // Vanish: How section scrolls away → car fades out
       scrollTriggers.push(
         ScrollTrigger.create({
           trigger: '#how-section',
@@ -355,13 +356,19 @@ export default function CarScene() {
           onUpdate: (self) => {
             if (!car || isDragging) return;
             const t = self.progress;
-            if (t < 0.55) {
+            if (isMobile()) {
+              // Mobile: simple fade out, no pop-out
+              car.position.x = SECTIONS.how.x;
+              car.position.y = SECTIONS.how.y;
+              car.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, 0, easeInOut(t)));
+              car.rotation.y = lerp(0.3, 0, easeInOut(t));
+            } else if (t < 0.55) {
               // Phase 1: Move to center (55% of scroll)
               const ct = t / 0.55;
               car.position.x = lerp(SECTIONS.how.x, 0, easeInOut(ct));
               car.position.y = SECTIONS.how.y;
               car.scale.setScalar(baseScale * SECTIONS.how.scale);
-              car.rotation.y = lerp(isMobile() ? 0.3 : 0.8, 0, easeInOut(ct));
+              car.rotation.y = lerp(0.8, 0, easeInOut(ct));
             } else {
               // Phase 2: Pop out from center (45% of scroll)
               const ct = (t - 0.55) / 0.45;
@@ -390,7 +397,7 @@ export default function CarScene() {
       .to('.nav-logo',    { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.1)
       .to('.nav-links',   { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.15)
       .to('.profile-btn', { opacity: 1, y: 0, duration: 0.6, ease: 'power3.out' }, 0.2)
-      .to('#ph-badge',    { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out'   }, 0.4)
+      .to('.ph-embed',    { opacity: 1, y: 0, duration: 0.7, ease: 'expo.out'   }, 0.4)
       .to('#event-card',  { opacity: 1, x: 0, duration: 1.1, ease: 'expo.out'   }, 0.55)
       .to('#hero-text',   { opacity: 1, x: 0, duration: 1.1, ease: 'expo.out'   }, 0.65);
 
@@ -455,13 +462,22 @@ export default function CarScene() {
     window.addEventListener('resize', onResize);
 
     // ─── RENDER LOOP ────────────────────────────────────────────
+    let mobileAutoRotate = true;
+    const rotateBtn = document.getElementById('car-rotate-btn');
+    if (rotateBtn) {
+      rotateBtn.addEventListener('click', () => {
+        mobileAutoRotate = !mobileAutoRotate;
+        rotateBtn.classList.toggle('active', mobileAutoRotate);
+      });
+    }
+
     function animate() {
       if (car && !isDragging) {
-        if (isTouchDevice()) {
-          if (currentSection === 'hero' && !window.__mobileDragOn) {
+        if (isMobile()) {
+          if (currentSection === 'hero' && mobileAutoRotate) {
             car.rotation.y += 0.004;
           }
-        } else if (!isMobile()) {
+        } else {
           if ((statsProgress < 0.85 || howProgress > 0.15) && howProgress < 0.85) {
             car.rotation.x += autoVel.x;
             car.rotation.y += autoVel.y;
@@ -476,6 +492,7 @@ export default function CarScene() {
     function onLoad() {
       if (!isMobile()) setupScrollCar();
       ScrollTrigger.refresh();
+      ScrollTrigger.update();
     }
     if (document.readyState === 'complete') {
       onLoad();
@@ -510,5 +527,15 @@ export default function CarScene() {
     };
   }, []);
 
-  return <canvas id="hero-canvas" ref={canvasRef} />;
+  return (
+    <div className="car-canvas-wrapper">
+      <canvas id="hero-canvas" ref={canvasRef} />
+      <button id="car-rotate-btn" className="car-rotate-btn active" aria-label="Toggle auto-rotate">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+          <path d="M21 3v5h-5" />
+        </svg>
+      </button>
+    </div>
+  );
 }
