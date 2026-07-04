@@ -1328,10 +1328,15 @@ body {
     letter-spacing: 1px;
     text-transform: uppercase;
     cursor: pointer;
-    transition: background 0.25s, border-color 0.25s;
+    transition: background 0.25s, border-color 0.25s, opacity 0.3s ease, transform 0.3s ease;
   }
   .mobile-drag-toggle:active {
     background: rgba(40, 40, 50, 0.85);
+  }
+  .mobile-drag-toggle.hidden {
+    opacity: 0;
+    pointer-events: none;
+    transform: translateX(-50%) translateY(1.5rem);
   }
 }
 
