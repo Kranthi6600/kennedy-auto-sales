@@ -174,19 +174,23 @@ export default function CarScene() {
     function carEntrance() {
       if (!car) return;
       const targetS = baseScale * SECTIONS.hero.scale;
+
+      if (isMobile()) {
+        car.scale.setScalar(targetS);
+        return;
+      }
+
       car.scale.setScalar(targetS * 0.25);
 
       gsap.to(car.scale, {
         x: targetS, y: targetS, z: targetS,
         duration: 1.3, ease: 'expo.out', delay: 0.5,
-        onComplete: () => { if (!isMobile()) enableDrag(); }
+        onComplete: () => { enableDrag(); }
       });
-      if (!isMobile()) {
-        gsap.fromTo(car.position,
-          { y: SECTIONS.hero.y - 0.8 },
-          { y: SECTIONS.hero.y, duration: 1.3, ease: 'expo.out', delay: 0.5 }
-        );
-      }
+      gsap.fromTo(car.position,
+        { y: SECTIONS.hero.y - 0.8 },
+        { y: SECTIONS.hero.y, duration: 1.3, ease: 'expo.out', delay: 0.5 }
+      );
     }
 
     loader.load('/models/2021_ford_bronco_2-door.glb', (gltf) => {
@@ -449,9 +453,14 @@ export default function CarScene() {
         const newBase = 2.4 / Math.max(size.x, size.y, size.z) / (car.scale.x / baseScale);
         baseScale = isMobile() ? newBase * MOBILE_SCALE_FACTOR : newBase;
         const sec = SECTIONS[currentSection] ?? SECTIONS.hero;
-        gsap.to(car.position, { x: sec.x, y: sec.y, z: sec.z, duration: 0.5, ease: 'power2.out' });
         const targetScale = baseScale * sec.scale;
-        gsap.to(car.scale, { x: targetScale, y: targetScale, z: targetScale, duration: 0.4, ease: 'power2.out' });
+        if (isMobile()) {
+          car.position.set(sec.x, sec.y, sec.z);
+          car.scale.setScalar(targetScale);
+        } else {
+          gsap.to(car.position, { x: sec.x, y: sec.y, z: sec.z, duration: 0.5, ease: 'power2.out' });
+          gsap.to(car.scale, { x: targetScale, y: targetScale, z: targetScale, duration: 0.4, ease: 'power2.out' });
+        }
       }
     }
     window.addEventListener('resize', onResize);
