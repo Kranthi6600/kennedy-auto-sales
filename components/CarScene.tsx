@@ -13,7 +13,7 @@ gsap.registerPlugin(ScrollTrigger);
 const CAR_SCALE = 0.97;
 const FOOTER_SCALE = 0.5;
 const MOBILE_SCALE_FACTOR = 0.8;
-const MOBILE_BREAKPOINT = 600;
+const MOBILE_BREAKPOINT = 1024;
 function isMobile(): boolean { return typeof window !== 'undefined' && window.innerWidth <= MOBILE_BREAKPOINT; }
 
 interface SectionConfig {
