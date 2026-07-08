@@ -52,6 +52,8 @@ export default function Home() {
           <span>scroll</span>
         </div>
         <div className="drag-hint">↔ drag to rotate</div>
+
+        {/* Mobile rotate toggle — placed above heading */}
         <MobileDragToggle />
       </section>
 
