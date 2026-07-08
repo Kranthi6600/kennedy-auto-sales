@@ -434,19 +434,14 @@ export default function CarScene() {
       renderer.setSize(cw, ch);
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       SECTIONS = { ...getSections() };
-      if (car) {
+      if (car && !isMobile()) {
         const size = new THREE.Box3().setFromObject(car).getSize(new THREE.Vector3());
         const newBase = 2.4 / Math.max(size.x, size.y, size.z) / (car.scale.x / baseScale);
-        baseScale = isMobile() ? newBase * MOBILE_SCALE_FACTOR : newBase;
+        baseScale = newBase;
         const sec = SECTIONS[currentSection] ?? SECTIONS.hero;
+        gsap.to(car.position, { x: sec.x, y: sec.y, z: sec.z, duration: 0.5, ease: 'power2.out' });
         const targetScale = baseScale * sec.scale;
-        if (isMobile()) {
-          car.position.set(sec.x, sec.y, sec.z);
-          car.scale.setScalar(targetScale);
-        } else {
-          gsap.to(car.position, { x: sec.x, y: sec.y, z: sec.z, duration: 0.5, ease: 'power2.out' });
-          gsap.to(car.scale, { x: targetScale, y: targetScale, z: targetScale, duration: 0.4, ease: 'power2.out' });
-        }
+        gsap.to(car.scale, { x: targetScale, y: targetScale, z: targetScale, duration: 0.4, ease: 'power2.out' });
       }
     }
     window.addEventListener('resize', onResize);
