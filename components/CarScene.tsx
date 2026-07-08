@@ -355,26 +355,12 @@ export default function CarScene() {
           onUpdate: (self) => {
             if (!car || isDragging) return;
             const t = self.progress;
-            if (isMobile()) {
-              // Mobile: simple fade out, no pop-out
-              car.position.x = SECTIONS.how.x;
-              car.position.y = SECTIONS.how.y;
-              car.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, 0, easeInOut(t)));
-              car.rotation.y = lerp(0.3, 0, easeInOut(t));
-            } else if (t < 0.55) {
-              // Phase 1: Move to center (55% of scroll)
-              const ct = t / 0.55;
-              car.position.x = lerp(SECTIONS.how.x, 0, easeInOut(ct));
-              car.position.y = SECTIONS.how.y;
-              car.scale.setScalar(baseScale * SECTIONS.how.scale);
-              car.rotation.y = lerp(0.8, 0, easeInOut(ct));
-            } else {
-              // Phase 2: Pop out from center (45% of scroll)
-              const ct = (t - 0.55) / 0.45;
-              car.position.x = 0;
-              car.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, 0, easeInOut(ct)));
-              car.position.y = lerp(SECTIONS.how.y, SECTIONS.how.y - 3, ct);
-            }
+            // Simple fade out on all devices — no pop-out
+            car.position.x = SECTIONS.how.x;
+            car.position.y = SECTIONS.how.y;
+            car.scale.setScalar(lerp(baseScale * SECTIONS.how.scale, 0, easeInOut(t)));
+            const rotY = isMobile() ? 0.3 : 0.8;
+            car.rotation.y = lerp(rotY, 0, easeInOut(t));
           },
           onEnter:     () => { disableDrag(); currentSection = 'vanishing'; },
           onLeaveBack: () => {
