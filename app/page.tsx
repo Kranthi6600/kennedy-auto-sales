@@ -9,6 +9,7 @@ import BuyingJourneyTimeline from '../components/BuyingJourneyTimeline';
 import TradeInEstimator from '../components/TradeInEstimator';
 import HeroPricing from '../components/HeroPricing';
 import EventCard from '../components/EventCard';
+import MobileDragToggle from '../components/MobileDragToggle';
 
 export default function Home() {
   return (
@@ -51,6 +52,7 @@ export default function Home() {
           <span>scroll</span>
         </div>
         <div className="drag-hint">↔ drag to rotate</div>
+        <MobileDragToggle />
       </section>
 
       {/* SECTION 2 — STATS */}

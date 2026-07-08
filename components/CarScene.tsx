@@ -295,6 +295,44 @@ export default function CarScene() {
     window.addEventListener('mousemove', onDragMove);
     window.addEventListener('mouseup', onDragEnd);
 
+    // ─── TOUCH DRAG (mobile) ────────────────────────────────────
+    function getTouchPos(e: TouchEvent): Vec2 {
+      const t = e.touches[0] || e.changedTouches[0];
+      return { x: t.clientX, y: t.clientY };
+    }
+
+    function onTouchStart(e: TouchEvent) {
+      if (!carLoaded || currentSection !== "hero") return;
+      if (!canvasEl.classList.contains('drag-enabled')) return;
+      e.preventDefault();
+      isDragging = true;
+      prevMouse = getTouchPos(e);
+      velocity = { x: 0, y: 0 };
+      if (momentumRAF) cancelAnimationFrame(momentumRAF);
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      if (!isDragging || !car) return;
+      e.preventDefault();
+      const pos = getTouchPos(e);
+      velocity.x = (pos.y - prevMouse.y) * 0.006;
+      velocity.y = (pos.x - prevMouse.x) * 0.006;
+      car.rotation.x += velocity.x;
+      car.rotation.y += velocity.y;
+      prevMouse = { ...pos };
+    }
+
+    function onTouchEnd(e: TouchEvent) {
+      if (!isDragging) return;
+      e.preventDefault();
+      isDragging = false;
+      applyMomentum();
+    }
+
+    canvasEl.addEventListener('touchstart', onTouchStart, { passive: false });
+    canvasEl.addEventListener('touchmove', onTouchMove, { passive: false });
+    canvasEl.addEventListener('touchend', onTouchEnd, { passive: false });
+
     // ─── SCROLL-DRIVEN CAR POSITIONING ─────────────────────────
     function setupScrollCar() {
       // Hero → Stats
@@ -486,6 +524,9 @@ export default function CarScene() {
       window.removeEventListener('resize', onResize);
       window.removeEventListener('load', onLoad);
       canvasEl.removeEventListener('mousedown', onDragStart);
+      canvasEl.removeEventListener('touchstart', onTouchStart);
+      canvasEl.removeEventListener('touchmove', onTouchMove);
+      canvasEl.removeEventListener('touchend', onTouchEnd);
       if (eventCardEl) {
         eventCardEl.removeEventListener('mouseenter', onCardEnter);
         eventCardEl.removeEventListener('mouseleave', onCardLeave);

@@ -219,6 +219,38 @@ body {
   z-index: 10; pointer-events: none;
 }
 
+/* Mobile drag toggle button */
+.mobile-drag-toggle {
+  display: none;
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid rgba(0,0,0,0.12);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: var(--ink);
+  cursor: pointer;
+  pointer-events: all;
+  transition: opacity 0.3s, transform 0.3s;
+}
+.mobile-drag-toggle.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(8px);
+}
+.mobile-drag-toggle:active {
+  background: rgba(255,255,255,0.9);
+}
+
 /* =============================================
    SECTIONS — BASE
 ============================================= */
@@ -2240,6 +2272,7 @@ body {
   .scroll-indicator { display: none; }
   .drag-hint { display: none; }
   .nav-arrow-btn { display: none; }
+  .mobile-drag-toggle { display: block; }
 
 
   /* === STATS === */
