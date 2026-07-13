@@ -2,6 +2,7 @@
 const nextConfig = {
   compress: true,
   poweredByHeader: false,
+  serverExternalPackages: ['ssh2-sftp-client', 'ssh2'],
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
