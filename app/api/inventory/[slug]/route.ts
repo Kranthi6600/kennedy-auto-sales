@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const API_BASE = process.env.SAAS_API_BASE || "https://wehoware-saas.vercel.app";
-const CLIENT_ID = process.env.SAAS_CLIENT_ID || "035053d7-da03-4a53-ae55-1797306cd7ad";
+import { fetchInventoryCsv } from "../../../../lib/sftp-client";
+import { csvToInventoryDetailResponse } from "../../../../lib/csv-mapper";
 
 export async function GET(
   _request: NextRequest,
@@ -9,12 +8,12 @@ export async function GET(
 ) {
   const { slug } = await params;
   try {
-    const res = await fetch(
-      `${API_BASE}/api/public/inventory/${slug}?clientId=${CLIENT_ID}`,
-      { next: { revalidate: 60 } }
-    );
-    const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
+    const csvText = await fetchInventoryCsv();
+    const data = csvToInventoryDetailResponse(csvText, slug);
+    if (!data) {
+      return NextResponse.json({ error: "Vehicle not found" }, { status: 404 });
+    }
+    return NextResponse.json(data);
   } catch {
     return NextResponse.json({ error: "Failed to fetch inventory item" }, { status: 502 });
   }

@@ -7,6 +7,7 @@ const nextConfig = {
     remotePatterns: [
       { protocol: 'https', hostname: 'images.unsplash.com' },
       { protocol: 'https', hostname: 'wehoware-saas-storage.s3.ca-central-1.amazonaws.com' },
+      { protocol: 'https', hostname: 'dealerpull.blob.core.windows.net' },
     ],
   },
 };
