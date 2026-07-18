@@ -46,7 +46,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <span className="contact-card-label">Phone</span>
-                <a href="tel:+14165551234" className="contact-card-value">(416) 555-1234</a>
+                <a href="tel:+16473687272" className="contact-card-value">(647) 368-7272</a>
               </div>
             </div>
 
@@ -59,7 +59,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <span className="contact-card-label">Email</span>
-                <a href="mailto:info@kennedyautosales.ca" className="contact-card-value">info@kennedyautosales.ca</a>
+                <a href="mailto:kennedyautosales1425@gmail.com" className="contact-card-value">kennedyautosales1425@gmail.com</a>
               </div>
             </div>
 

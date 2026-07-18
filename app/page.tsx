@@ -234,7 +234,7 @@ export default function Home() {
               </svg>
               <div>
                 <span className="map-info-label">Phone</span>
-                <a href="tel:+14165550199" className="map-info-value map-info-link">(416) 555-0199</a>
+                <a href="tel:+16473687272" className="map-info-value map-info-link">(647) 368-7272</a>
               </div>
             </div>
             <div className="map-info-row">
@@ -243,7 +243,7 @@ export default function Home() {
               </svg>
               <div>
                 <span className="map-info-label">Email</span>
-                <a href="mailto:info@kennedyautosales.ca" className="map-info-value map-info-link">info@kennedyautosales.ca</a>
+                <a href="mailto:kennedyautosales1425@gmail.com" className="map-info-value map-info-link">kennedyautosales1425@gmail.com</a>
               </div>
             </div>
           </div>
