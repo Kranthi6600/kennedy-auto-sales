@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Navbar from "../../../components/Navbar";
 import Footer from "../../../components/Footer";
@@ -15,6 +15,10 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeImg, setActiveImg] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [zoom, setZoom] = useState(1);
+  const [zoomOrigin, setZoomOrigin] = useState("50% 50%");
+  const lightboxRef = useRef<HTMLDivElement>(null);
   const [slug, setSlug] = useState<string>("");
   const [recommended, setRecommended] = useState<InventoryItem[]>([]);
 
@@ -55,6 +59,49 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
       .catch(() => {});
     return () => { cancelled = true; };
   }, [slug]);
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    const imgs = item?.images?.map((i) => i.url).filter(Boolean) ?? [];
+    const count = imgs.length || (item?.thumbnail ? 1 : 0);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setModalOpen(false);
+      else if (e.key === "ArrowLeft" && count > 1) setActiveImg((i) => (i - 1 + count) % count);
+      else if (e.key === "ArrowRight" && count > 1) setActiveImg((i) => (i + 1) % count);
+    };
+    window.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [modalOpen, item]);
+
+  useEffect(() => {
+    if (!modalOpen) return;
+    const el = lightboxRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      const img = el.querySelector("img");
+      if (img) {
+        const rect = img.getBoundingClientRect();
+        const x = ((e.clientX - rect.left) / rect.width) * 100;
+        const y = ((e.clientY - rect.top) / rect.height) * 100;
+        setZoomOrigin(
+          `${Math.min(100, Math.max(0, x))}% ${Math.min(100, Math.max(0, y))}%`
+        );
+      }
+      setZoom((z) => Math.min(4, Math.max(1, z + (e.deltaY < 0 ? 0.25 : -0.25))));
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [modalOpen]);
+
+  useEffect(() => {
+    setZoom(1);
+    setZoomOrigin("50% 50%");
+  }, [modalOpen, activeImg]);
 
   const formatPrice = (v: InventoryDetailItem) => {
     if (!v.price_visible) return 'Contact for pricing';
@@ -127,6 +174,7 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
     : item.thumbnail
       ? [item.thumbnail_alt || item.title]
       : [];
+  const carfaxUrl = item.attributes?.carfax_url;
   const selected = mounted && isInCompare(item.id);
   const disabled = !selected && maxReached;
 
@@ -170,8 +218,42 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
                 alt={allAlts[activeImg] || item.title}
                 fetchPriority="high"
                 decoding="async"
+                onClick={() => allImages.length > 0 && setModalOpen(true)}
               />
               {item.featured && <span className="car-detail-badge">Featured</span>}
+              {allImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    className="car-detail-arrow car-detail-arrow-prev"
+                    aria-label="Previous image"
+                    onClick={() => setActiveImg((i) => (i - 1 + allImages.length) % allImages.length)}
+                  >
+                    ‹
+                  </button>
+                  <button
+                    type="button"
+                    className="car-detail-arrow car-detail-arrow-next"
+                    aria-label="Next image"
+                    onClick={() => setActiveImg((i) => (i + 1) % allImages.length)}
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+              {allImages.length > 0 && (
+                <button
+                  type="button"
+                  className="car-detail-expand"
+                  aria-label="View fullscreen"
+                  onClick={() => setModalOpen(true)}
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                  </svg>
+                  Full View
+                </button>
+              )}
             </div>
             {allImages.length > 1 && (
               <div className="car-detail-thumbs">
@@ -191,15 +273,29 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
           <div className="car-detail-info glass-card">
             <div className="car-detail-header">
               <h1 className="car-detail-title">{item.title}</h1>
-              {item.category && <span className="car-detail-cat">{item.category.name}</span>}
+              <div className="car-detail-header-side">
+                {item.category && <span className="car-detail-cat">{item.category.name}</span>}
+                {carfaxUrl && (
+                  <a
+                    href={carfaxUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="carfax-badge"
+                    aria-label="View CARFAX report"
+                  >
+                    <img src="/assets/CARFAX.jpg" alt="CARFAX report" />
+                  </a>
+                )}
+              </div>
             </div>
 
             <div className="car-detail-price">
               <span className="car-detail-price-tag">{formatPrice(item)}</span>
               {item.price_visible && item.price ? <span className="car-detail-price-note">+ tax & licensing</span> : null}
+              {item.attributes?.condition && <span className="car-detail-cat">{item.attributes.condition}</span>}
             </div>
 
-            <p className="car-detail-desc">{stripTags(item.description || item.attributes?.condition || 'No description available.')}</p>
+            {item.description && <p className="car-detail-desc">{stripTags(item.description)}</p>}
 
             <div className="car-detail-actions">
               <button
@@ -212,22 +308,6 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
               <Link href="/contact" className="inv-cta">Inquire Now →</Link>
             </div>
 
-            {item.attributes?.carfax_url && (
-              <a
-                href={item.attributes.carfax_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="carfax-report-link"
-              >
-                <img
-                  src="/assets/CARFAX.jpg"
-                  alt={`View CARFAX report for ${item.title}`}
-                  className="carfax-report-img"
-                  loading="lazy"
-                  decoding="async"
-                />
-              </a>
-            )}
 
             <div className="car-detail-specs">
               <h3>Specifications</h3>
@@ -294,6 +374,53 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
           <Link href="/inventory" className="cta-main-btn">Back to Inventory →</Link>
         </div>
       </section>
+
+      {modalOpen && allImages.length > 0 && (
+        <div className="car-lightbox" ref={lightboxRef} onClick={() => setModalOpen(false)}>
+          <button
+            type="button"
+            className="car-lightbox-close"
+            aria-label="Close full view"
+            onClick={() => setModalOpen(false)}
+          >
+            ×
+          </button>
+          {allImages.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="car-detail-arrow car-detail-arrow-prev"
+                aria-label="Previous image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveImg((i) => (i - 1 + allImages.length) % allImages.length);
+                }}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                className="car-detail-arrow car-detail-arrow-next"
+                aria-label="Next image"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveImg((i) => (i + 1) % allImages.length);
+                }}
+              >
+                ›
+              </button>
+            </>
+          )}
+          <img
+            src={allImages[activeImg]}
+            alt={allAlts[activeImg] || item.title}
+            className={zoom > 1 ? "zoomed" : undefined}
+            style={{ transform: `scale(${zoom})`, transformOrigin: zoomOrigin }}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <span className="car-lightbox-counter">{activeImg + 1} / {allImages.length}</span>
+        </div>
+      )}
 
       <Footer />
     </>
