@@ -110,6 +110,7 @@ function mapRowToInventoryItem(row: CsvRow): InventoryItem {
       vin: vin || undefined,
       stock_number: stock || undefined,
       trim: row.TRIM || undefined,
+      carfax_url: row.ACCHISTLINK || undefined,
     },
     images: photos.length > 0 ? photos : null,
     videos: null,

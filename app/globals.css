@@ -4467,6 +4467,21 @@ a.contact-card-value:hover { text-decoration: underline; text-underline-offset: 
   align-items: center;
   justify-content: center;
 }
+.carfax-report-link {
+  display: inline-block;
+  margin-top: 0.25rem;
+}
+.carfax-report-img {
+  width: 180px;
+  height: auto;
+  border-radius: 6px;
+  display: block;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.carfax-report-link:hover .carfax-report-img {
+  opacity: 0.85;
+  transform: translateY(-1px);
+}
 .car-detail-specs {
   min-width: 0;
 }

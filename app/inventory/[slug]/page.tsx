@@ -212,6 +212,23 @@ export default function CarDetailPage({ params }: { params: Promise<{ slug: stri
               <Link href="/contact" className="inv-cta">Inquire Now →</Link>
             </div>
 
+            {item.attributes?.carfax_url && (
+              <a
+                href={item.attributes.carfax_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="carfax-report-link"
+              >
+                <img
+                  src="/assets/CARFAX.jpg"
+                  alt={`View CARFAX report for ${item.title}`}
+                  className="carfax-report-img"
+                  loading="lazy"
+                  decoding="async"
+                />
+              </a>
+            )}
+
             <div className="car-detail-specs">
               <h3>Specifications</h3>
               <div className="car-detail-specs-grid">

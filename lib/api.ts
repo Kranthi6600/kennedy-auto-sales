@@ -34,6 +34,7 @@ export interface InventoryItem {
     seats?: string;
     condition?: string;
     drivetrain?: string;
+    carfax_url?: string;
     [key: string]: string | undefined;
   } | null;
   images: { url: string; alt: string | null }[] | null;
