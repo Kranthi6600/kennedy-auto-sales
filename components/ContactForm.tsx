@@ -85,7 +85,7 @@ export default function ContactForm() {
           </div>
           <div className="contact-form-field">
             <label>Phone</label>
-            <input type="tel" name="phone" placeholder="(647) 368-7272" value={form.phone} onChange={handleChange} />
+            <input type="tel" name="phone" placeholder="+1 (416) 727-8067" value={form.phone} onChange={handleChange} />
           </div>
         </div>
         <div className="contact-form-field">

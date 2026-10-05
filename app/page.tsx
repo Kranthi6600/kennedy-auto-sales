@@ -234,7 +234,7 @@ export default function Home() {
               </svg>
               <div>
                 <span className="map-info-label">Phone</span>
-                <a href="tel:+16473687272" className="map-info-value map-info-link">(647) 368-7272</a>
+                <a href="tel:+14167278067" className="map-info-value map-info-link">+1 (416) 727-8067</a>
               </div>
             </div>
             <div className="map-info-row">
